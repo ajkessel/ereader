@@ -11,16 +11,14 @@ eReader is currently in early development and has only been tested on Kobo so fa
 
 ## Installing eReader
 
-Currently, the easiest way to install eReader is on top of an existing KOReader install. If you do not already have KOReader, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install it (using either the semi-automated method or manually installing KFMon and KOReader).
+Currently, the easiest way to install eReader is on top of an existing KOReader install. If you already have KOReader installed, make sure you are running the latest release before proceeeding. If you do not already have KOReader, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install it (using either the semi-automated method or manually installing KFMon and KOReader).
 
 Once you have installed it, you can simply check out the eReader code, plug in your device and run this command:
 ```
 ./deploy_ereader.sh
 ```
 
- This will install eReader ontop of your existing install of KOReader, but eReader contains a fully functioning instance KOReader. It will also add a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu). 
- 
- Installing eReader will not replace your existing KOReader shortcut, so you will still have a menu item to launch both.
+ This will install eReader into your existing install of KOReader, but KOReader will continue to be fully functional. The deploy script also add a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu). If you already have a KOReader shortcut menu item, it will continue to work as before. 
 
 ## Features
 
