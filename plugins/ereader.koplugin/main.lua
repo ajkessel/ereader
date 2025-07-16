@@ -224,6 +224,7 @@ local ArticleItem = InputContainer:extend{
     height = nil,
     background = nil,
     callback = nil,
+    menu_callback = nil,
 }
 
 function ArticleItem:init()
@@ -233,17 +234,23 @@ function ArticleItem:init()
     local title_text = self.article.title or "Untitled"
     local domain = self.instapaperManager.getDomain(self.article.url) or "No URL"
     
-    -- Download status indicator
-    local download_icon = nil
+    -- Check if article is downloaded
     local is_downloaded = self.article.html_size and self.article.html_size > 0
-    if is_downloaded then
-        download_icon = TextWidget:new{
-            alignment = "left",
-            text = "⇩",
-            face = Font:getFace("infont", 20),
-            max_width = Screen:scaleBySize(20),
-        }
-    end
+    
+    -- Menu button (replaces download icon)
+    local menu_button = Button:new{
+        text = "…",
+        background = self.background or Blitbuffer.COLOR_WHITE,
+        face = Font:getFace("infont", 14),
+        width = Screen:scaleBySize(30),
+        height = Screen:scaleBySize(30),
+        bordersize = 0,
+        callback = function()
+            if self.menu_callback then
+                self.menu_callback()
+            end
+        end,
+    }
     
     -- Thumbnail widget
     local thumbnail_size = Screen:scaleBySize(60)
@@ -269,9 +276,9 @@ function ArticleItem:init()
             height = thumbnail_size,
         }
     else
-        -- Creat an empty placeholder with grey background
+        -- Create an empty placeholder with grey background
         thumbnail_widget = Button:new{
-            text = "",
+            text = "⇩",
             bordersize = 3,
             border_color = Blitbuffer.COLOR_DARK_GRAY,
             background = Blitbuffer.COLOR_GRAY_E,
@@ -285,7 +292,7 @@ function ArticleItem:init()
         text = title_text,
         fgcolor = is_downloaded and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY,
         face = Font:getFace("x_smalltfont", 16),
-        max_width = self.width - thumbnail_size - Screen:scaleBySize(60), -- Leave space for thumbnail and download icon
+        max_width = self.width - thumbnail_size - Screen:scaleBySize(60), -- Leave space for thumbnail and menu button
         width = self.width - thumbnail_size - Screen:scaleBySize(60),
     }
     
@@ -294,7 +301,7 @@ function ArticleItem:init()
         text = domain,
         fgcolor = is_downloaded and Blitbuffer.COLOR_DARK_GRAY or Blitbuffer.COLOR_BLACK,
         face = Font:getFace("infont", 14),
-        max_width = self.width - thumbnail_size - Screen:scaleBySize(60), -- Leave space for thumbnail and download icon
+        max_width = self.width - thumbnail_size - Screen:scaleBySize(60), -- Leave space for thumbnail and menu button
         width = self.width - thumbnail_size - Screen:scaleBySize(60),
     }
     
@@ -306,31 +313,21 @@ function ArticleItem:init()
         domain_widget,
     }
     
-    -- Main content with thumbnail on the left and download icon on the right
-    local content_group
-    if download_icon then
-        content_group = OverlapGroup:new {
-            dimen = self.dimen:copy(),
-            HorizontalGroup:new{
-                align = "top",
-                thumbnail_widget,
-                HorizontalSpan:new{ width = Screen:scaleBySize(10) },
-                text_group,
-            },
-            RightContainer:new{
-                align = "center",
-                dimen = Geom:new{ w = self.width - Screen:scaleBySize(20), h = self.height },
-                download_icon,
-            },
-        }
-    else
-        content_group = HorizontalGroup:new{
+    -- Main content with thumbnail on the left and menu button on the right
+    local content_group = OverlapGroup:new {
+        dimen = self.dimen:copy(),
+        HorizontalGroup:new{
             align = "top",
             thumbnail_widget,
             HorizontalSpan:new{ width = Screen:scaleBySize(10) },
             text_group,
-        }
-    end
+        },
+        RightContainer:new{
+            align = "center",
+            dimen = Geom:new{ w = self.width - Screen:scaleBySize(20), h = self.height },
+            menu_button,
+        },
+    }
     
     -- Container with background and padding
     self[1] = FrameContainer:new{
@@ -341,11 +338,17 @@ function ArticleItem:init()
         content_group,
     }
     
-    -- Register touch events - only handle taps, not swipes
+    -- Register touch events - handle taps and hold
     if Device:isTouchDevice() then
         self.ges_events.TapSelect = {
             GestureRange:new{
                 ges = "tap",
+                range = self.dimen,
+            }
+        }
+        self.ges_events.HoldSelect = {
+            GestureRange:new{
+                ges = "hold",
                 range = self.dimen,
             }
         }
@@ -354,8 +357,17 @@ function ArticleItem:init()
 end
 
 function ArticleItem:onTapSelect(arg, ges_ev)
+    -- Open article on tap
     if self.callback then
         self.callback()
+    end
+    return true
+end
+
+function ArticleItem:onHoldSelect(arg, ges_ev)
+    -- Open article options menu on hold
+    if self.menu_callback then
+        self.menu_callback()
     end
     return true
 end
@@ -397,6 +409,9 @@ function Ereader:showArticles()
                 instapaperManager = self.instapaperManager,
                 callback = function()
                     self:loadArticleContent(article)
+                end,
+                menu_callback = function()
+                    self:showArticleOptionsMenu(article)
                 end,
             }
             table.insert(items, item)
@@ -636,6 +651,219 @@ function Ereader:showMenu()
         },
     }
     UIManager:show(menu_container)
+end
+
+function Ereader:showArticleOptionsMenu(article)
+    local is_downloaded = article.html_size and article.html_size > 0
+    local is_starred = article.starred
+    
+    local buttons = {}
+
+    
+    -- Add like/unlike option
+    if is_starred then
+        table.insert(buttons, {
+            {
+                text = _("Unlike"),
+                callback = function()
+                    UIManager:close(button_dialog)
+                    self:unlikeArticle(article)
+                end,
+            },
+        })
+    else
+        table.insert(buttons, {
+            {
+                text = _("Like"),
+                callback = function()
+                    UIManager:close(button_dialog)
+                    UIManager:nextTick(function() -- so that button dialog has a chance to dismiss
+                        self:likeArticle(article)
+                    end)
+                end,
+            },
+        })
+    end
+
+    -- Add archive option
+    table.insert(buttons, {
+        {
+            text = _("Archive"),
+            callback = function()
+                UIManager:close(button_dialog)
+                UIManager:nextTick(function()
+                    self:archiveArticle(article)
+                end)
+            end,
+        },
+    })
+
+    -- Add download/redownload option
+    if is_downloaded then
+        table.insert(buttons, {
+            {
+                text = _("Redownload"),
+                callback = function()
+                    UIManager:close(button_dialog)
+                    UIManager:nextTick(function()
+                        self:downloadArticle(article)
+                    end)
+                end,
+            },
+        })
+    else
+        table.insert(buttons, {
+            {
+                text = _("Download"),
+                callback = function()
+                    UIManager:close(button_dialog)
+                    UIManager:nextTick(function()
+                        self:downloadArticle(article)
+                    end)
+                end,
+            },
+        })
+    end
+    
+    -- Add delete option
+    table.insert(buttons, {
+        {
+            text = _("Delete"),
+            callback = function()
+                UIManager:close(button_dialog)
+                UIManager:nextTick(function()
+                    self:deleteArticle(article)
+                end)
+            end,
+        },
+    })
+    
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local button_dialog = ButtonDialog:new{
+        title = article.title or _("Article Options"),
+        title_align = "center",
+        buttons = buttons,
+    }
+    UIManager:show(button_dialog)
+end
+
+function Ereader:downloadArticle(article)
+    local info = InfoMessage:new{ text = _("Downloading " .. article.title .. "…") }
+    UIManager:show(info)
+    
+    local success, error_message = self.instapaperManager:downloadArticle(article.bookmark_id)
+    UIManager:close(info)
+    
+    if success then
+        UIManager:show(InfoMessage:new{
+            text = _("Download complete"),
+            timeout = 2,
+        })
+        -- Refresh the article list
+        self:showArticles()
+    else
+        UIManager:show(ConfirmBox:new{
+            text = _("Failed to download article: ") .. (error_message or _("Unknown error")),
+            ok_text = _("OK"),
+        })
+    end
+end
+
+function Ereader:archiveArticle(article)
+    local info = InfoMessage:new{ text = _("Archiving " .. article.title .. "…") }
+    UIManager:show(info)
+    
+    local success, error_message, did_enqueue = self.instapaperManager:archiveArticle(article.bookmark_id)
+    UIManager:close(info)
+    
+    if success then
+        UIManager:show(InfoMessage:new{
+            text = (did_enqueue and _("Article will be archived in next sync")) or _("Article archived"),
+            timeout = 2,
+        })
+        -- Refresh the article list
+        self:showArticles()
+    else
+        UIManager:show(ConfirmBox:new{
+            text = _("Failed to archive article: ") .. (error_message or _("Unknown error")),
+            ok_text = _("OK"),
+        })
+    end
+end
+
+function Ereader:likeArticle(article)
+    local info = InfoMessage:new{ text = _("Liking " .. article.title .. "…") }
+    UIManager:show(info)
+    
+    local success, error_message, did_enqueue = self.instapaperManager:favoriteArticle(article.bookmark_id)
+    UIManager:close(info)
+    
+    if success then
+        logger.dbg("ereader: did_enque:", did_enque)
+        UIManager:show(InfoMessage:new{
+            text = (did_enqueue and _("Article will be liked in next sync")) or _("Article liked"),
+            timeout = 2,
+        })
+        -- Refresh the article list
+        self:showArticles()
+    else
+        UIManager:show(ConfirmBox:new{
+            text = _("Failed to like article: ") .. (error_message or _("Unknown error")),
+            ok_text = _("OK"),
+        })
+    end
+end
+
+function Ereader:unlikeArticle(article)
+    local info = InfoMessage:new{ text = _("Unliking " .. article.title .. "…") }
+    UIManager:show(info)
+    
+    local success, error_message, did_enqueue = self.instapaperManager:unfavoriteArticle(article.bookmark_id)
+    UIManager:close(info)
+    
+    if success then
+        logger.dbg("ereader: did_enque:", did_enque)
+        UIManager:show(InfoMessage:new{
+            text = (did_enqueue and _("Article will be unliked in next sync")) or _("Article unliked"),
+            timeout = 2,
+        })
+        -- Refresh the article list
+        self:showArticles()
+    else
+        UIManager:show(ConfirmBox:new{
+            text = _("Failed to unlike article: ") .. (error_message or _("Unknown error")),
+            ok_text = _("OK"),
+        })
+    end
+end
+
+function Ereader:deleteArticle(article)
+    UIManager:show(ConfirmBox:new{
+        text = _("Are you sure you want to permanently delete this article?"),
+        ok_text = _("Delete"),
+        cancel_text = _("Cancel"),
+        ok_callback = function()
+            local info = InfoMessage:new{ text = _("Deleting " .. article.title .. "…") }
+            UIManager:show(info)
+            
+            local success, error_message, did_enqueue = self.instapaperManager:deleteArticle(article.bookmark_id)
+            UIManager:close(info)
+            
+            if success then
+                UIManager:show(InfoMessage:new{
+                    text = (did_enqueue and _("Article will be deleted in next sync")) or _("Article deleted"),
+                    timeout = 2,
+                })
+                -- Refresh the article list
+                self:showArticles()
+            else
+                UIManager:show(ConfirmBox:new{
+                    text = _("Failed to delete article: ") .. (error_message or _("Unknown error")),
+                    ok_text = _("OK"),
+                })
+            end
+        end,
+    })
 end
 
 function Ereader:setStatusMessage(message, timeout)

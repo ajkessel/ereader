@@ -261,7 +261,7 @@ end
 -- Helper method for queueable API requests
 function InstapaperAPIManager:executeQueueableRequest(endpoint, additional_params)
     if not self:isAuthenticated() then
-        return false, "Not authenticated"
+        return false, "Not authenticated", false
     end
     
     -- Build parameters with oauth_token
@@ -277,7 +277,7 @@ function InstapaperAPIManager:executeQueueableRequest(endpoint, additional_param
     if not NetworkMgr:isOnline() then
         -- Queue the request for later
         self:addToQueue(self.api_base .. endpoint, params)
-        return true, nil
+        return true, nil, true
     end
     
     -- Generate OAuth parameters and execute request
@@ -548,6 +548,10 @@ end
 
 function InstapaperAPIManager:unfavoriteArticle(bookmark_id)    
     return self:executeQueueableRequest("/api/1/bookmarks/unstar", {bookmark_id = string.format("%d", bookmark_id)})
+end
+
+function InstapaperAPIManager:deleteArticle(bookmark_id)    
+    return self:executeQueueableRequest("/api/1/bookmarks/delete", {bookmark_id = string.format("%d", bookmark_id)})
 end
 
 -- Add a highlight to Instapaper

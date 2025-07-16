@@ -470,6 +470,24 @@ function InstapaperManager:unfavoriteArticle(bookmark_id)
     end
 end
 
+function InstapaperManager:deleteArticle(bookmark_id)
+    if not self:isAuthenticated() then
+        logger.err("ereader: Cannot delete article - not authenticated")
+        return false
+    end
+    logger.dbg("ereader: Deleting article:", bookmark_id)
+    local success, error_message, did_enqueue = self.instapaper_api_manager:deleteArticle(bookmark_id)
+    if success then
+        -- Also delete from local storage
+        self.storage:deleteArticle(bookmark_id)
+        logger.dbg("ereader: Successfully deleted article:", bookmark_id)
+        return true, nil, did_enqueue
+    else
+        logger.err("ereader: Failed to delete article:", bookmark_id)
+        return false, error_message, false
+    end
+end
+
 function InstapaperManager:getArticleMetadata(bookmark_id)
     return self.storage:getArticle(bookmark_id)
 end
