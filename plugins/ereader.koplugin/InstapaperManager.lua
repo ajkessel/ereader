@@ -13,6 +13,7 @@ local http = require("socket.http")
 local ltn12 = require("ltn12")
 local socketutil = require("socketutil")
 local socket = require("socket")
+local Settings = require("ereadersettings")
 
 local InstapaperManager = {}
 local _manager_instance = nil
@@ -47,9 +48,8 @@ end
 
 function InstapaperManager:logout()
     self.instapaper_api_manager:cleanAll()
+    Settings:clearAll()
     self.storage:clearAll()
-    
-
     
     logger.dbg("ereader: Logged out and cleared tokens")
 end

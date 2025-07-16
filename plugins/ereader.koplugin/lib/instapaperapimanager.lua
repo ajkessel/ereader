@@ -11,39 +11,11 @@ local JSON = require("json")
 local JSONUtils = require("lib/json_utils")
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
+local Settings = require("ereadersettings")
+
 
 local InstapaperAPIManager = {}
 local _instance = nil
-
--- Settings storage is currently used for auth credentials
-local function getSettings()
-    local settings = LuaSettings:open(DataStorage:getSettingsDir().."/ereader.lua")
-    settings:readSetting("ereader", {})
-    return settings
-end
-
--- Generic settings methods
-local function getSetting(key, default)
-    local settings = getSettings()
-    local data = settings.data.ereader or {}
-    return data[key] ~= nil and data[key] or default
-end
-
-local function setSetting(key, value)
-    local settings = getSettings()
-    local data = settings.data.ereader or {}
-    data[key] = value
-    settings:saveSetting("ereader", data)
-    settings:flush()
-end
-
-local function delSetting(key)
-    local settings = getSettings()
-    local data = settings.data.ereader or {}
-    data[key] = nil
-    settings:saveSetting("ereader", data)
-    settings:flush()
-end
 
 function InstapaperAPIManager:instapaperAPIManager()
     -- Return existing instance if it exists
@@ -100,29 +72,26 @@ end
 
 -- Token management methods
 function InstapaperAPIManager:loadTokens()
-    return getSetting("instapaper_oauth_token"), getSetting("instapaper_oauth_token_secret")
+    return Settings:getOAuthToken(), Settings:getOAuthTokenSecret()
 end
 
 function InstapaperAPIManager:loadUsername()
-    return getSetting("instapaper_username")
+    return Settings:getUsername()
 end
 
 function InstapaperAPIManager:saveTokens(oauth_token, oauth_token_secret)
-    setSetting("instapaper_oauth_token", oauth_token)
-    setSetting("instapaper_oauth_token_secret", oauth_token_secret)
+    Settings:setOAuthToken(oauth_token)
+    Settings:setOAuthTokenSecret(oauth_token_secret)
     self.oauth_token = oauth_token
     self.oauth_token_secret = oauth_token_secret
 end
 
 function InstapaperAPIManager:saveUsername(username)
-    setSetting("instapaper_username", username)
+    Settings:setUsername(username)
     self.username = username
 end
 
 function InstapaperAPIManager:cleanAll()
-    delSetting("instapaper_oauth_token")
-    delSetting("instapaper_oauth_token_secret")
-    delSetting("instapaper_username")
     self.oauth_token = nil
     self.oauth_token_secret = nil
     self.username = nil
