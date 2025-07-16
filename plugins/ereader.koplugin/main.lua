@@ -36,10 +36,13 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local Button = require("ui/widget/button")
 local Event = require("ui/event")
 local NetworkMgr = require("ui/network/manager")
+local TaskManager = require("taskmanager")
 
 local Ereader = WidgetContainer:extend{
     name = "eReader",
-    list_view = nil, -- KeyValuePage
+    list_view = nil,
+    main_view = nil,
+    title_bar = nil,
 }
 
 -- DEVELOPMENT ONLY: Load stored credentials from api_keys.txt for testing convenience
@@ -104,10 +107,11 @@ function Ereader:showUI()
     if not self:checkAPIKeys() then
         return
     end
-    
-    if self.instapaperManager:isAuthenticated() then
-        self:showArticles() 
-    else
+
+    self:showArticles() 
+
+    if not self.instapaperManager:isAuthenticated() then
+        self.has_not_synced = true
         self:showLoginDialog()
     end
 end
@@ -141,14 +145,6 @@ function Ereader:showLoginDialog()
     -- DEVELOPMENT ONLY: Pre-fill credentials for testing
     local stored_username, stored_password = loadDevCredentials()
 
-    self.list_view = KeyValuePage:new{
-        title = _("eReader"),
-        value_overflow_align = "right",
-        callback_return = function()
-            UIManager:close(self.list_view)
-        end,    
-    }
-    UIManager:show(self.list_view)
     
     self.login_dialog = MultiInputDialog:new{
         title = _("Instapaper Login"),
@@ -200,16 +196,51 @@ function Ereader:showLoginDialog()
                             UIManager:close(info)
 
                             if success then
+                                self:setStatusMessage(_("Syncing…"))
                                 UIManager:close(self.login_dialog)
-
+                                local articles_to_download = 5
                                 -- initial sync can take a while, so show a message
-                                local info = InfoMessage:new{ text = _("Syncing articles...") }
-                                UIManager:show(info)
 
-                                UIManager:scheduleIn(0.1, function()
-                                    self.instapaperManager:synchWithAPI()
-                                    self:showArticles()
-                                    UIManager:close(info)
+                                TaskManager.run(function()
+                                    return self.instapaperManager:synchWithAPI()
+                                end, function(success, error_message)
+                                    if success then
+                                        -- download the first 20 articles
+                                        self:showArticles()
+                                        local articles = self.instapaperManager:getArticles()
+                                        local downloaded_articles = 0
+                                        for i = 1, articles_to_download do
+                                            if i > #articles then
+                                                self:setStatusMessage(_(""))
+                                                goto continue
+                                            end
+                                            local article = articles[i]
+                                            TaskManager.run(function()
+                                                return self.instapaperManager:downloadArticle(article.bookmark_id)
+                                            end, function(success, error_message)
+                                                downloaded_articles = downloaded_articles + 1
+                                                if success then
+                                                    -- Refresh list only if it's still the active view
+                                                    local UIManager = require("ui/uimanager")
+                                                    if self.main_view == UIManager:getTopmostVisibleWidget() then
+                                                        self:showArticles()
+                                                        if downloaded_articles > #articles or downloaded_articles == articles_to_download then
+                                                            self:setStatusMessage(_("Article downloads complete"), 2)
+                                                            self.has_not_synced = false
+                                                        else 
+                                                            self:setStatusMessage(_("Downloading " .. article.title .. "…"))
+                                                        end
+                                                    end
+                                                end
+                                            end)
+                                            ::continue::
+                                        end
+                                    else
+                                        UIManager:show(ConfirmBox:new{
+                                            text = _("Sync failed: " .. (error_message or "")),
+                                            ok_text = _("OK"),
+                                        })
+                                    end
                                 end)
                             else 
                                 UIManager:show(ConfirmBox:new{
@@ -377,8 +408,12 @@ function ArticleItem:onSwipe(arg, ges_ev)
 end
 
 function Ereader:showArticles()
+    local current_list_page = 1
+    local current_subtitle = ""
     if self.list_view then
-        UIManager:close(self.list_view)
+        current_list_page = self.list_view.show_page
+        current_subtitle = self.title_bar.subtitle_widget.text
+        UIManager:close(self.main_view)
     end
 
     -- Get articles from database store
@@ -417,7 +452,7 @@ function Ereader:showArticles()
             CenterContainer:new{
                 dimen = Geom:new{ w = width, h = item_height },
                 TextWidget:new{
-                    text = _("No articles synced yet"),
+                    text = self.has_not_synced and "" or "No articles synced yet",
                     face = Font:getFace("cfont"),
                 },
             },
@@ -425,13 +460,13 @@ function Ereader:showArticles()
         table.insert(items, no_articles_item)
     end
     
-    -- Create header with title and menu button
-    local header_height = Screen:scaleBySize(50)
-    local header = TitleBar:new{
+    -- Create title bar with title and menu button
+    local title_bar_height = Screen:scaleBySize(50)
+    self.title_bar = TitleBar:new{
         width = width,
         align = "left",
         title = _("eReader"),
-        subtitle = #articles .. " articles",
+        subtitle = current_subtitle, -- used for status messages
         subtitle_face = Font:getFace("xx_smallinfofont", 14),
         title_top_padding = Screen:scaleBySize(4),
         title_bottom_padding = Screen:scaleBySize(4),
@@ -457,44 +492,46 @@ function Ereader:showArticles()
         end,
         show_parent = self,
     }
-    local header_height = header:getHeight()
     
     -- Create ListView
-    local list_height = Screen:getHeight() - header_height
-    local list_view = ListView:new{
+    local list_height = Screen:getHeight() - title_bar_height
+    self.list_view = ListView:new{
         width = width,
         height = list_height,
         items = items,
         padding = 0,
+        margin = 0,
+        bordersize = 0,
         page_update_cb = function(curr_page, total_pages)
             -- Trigger screen refresh when page changes
-            UIManager:setDirty(self.list_view, function()
-                return "ui", self.list_view.dimen
+            UIManager:setDirty(self.main_view, function()
+                return "ui", self.main_view.dimen
             end)
         end,
     }
     
     -- Create main container
-    self.list_view = FrameContainer:new{
+    self.main_view = FrameContainer:new{
         background = Blitbuffer.COLOR_WHITE,
-        bordersize = Size.border.window,
+        bordersize = 0,
         padding = 0,
+        margin = 0,
         width = width,
         VerticalGroup:new{
             align = "left",
-            header,
-            list_view,
+            self.title_bar,
+            self.list_view,
         },
     }
     
     -- Forward key events for dev shortcuts and page navigation
-    self.list_view.onKeyPress = function(widget, key, mods, is_repeat)
+    self.main_view.onKeyPress = function(widget, key, mods, is_repeat)
         -- Handle page navigation
         if key.key == "Left" or key.key == "Up" or key.key == "RPgBack" then
-            list_view:prevPage()
+            self.list_view:prevPage()
             return true
         elseif key.key == "Right" or key.key == "Down" or key.key == "RPgFwd" then
-            list_view:nextPage()
+            self.list_view:nextPage()
             return true
         end
         
@@ -505,7 +542,7 @@ function Ereader:showArticles()
         return false
     end
     
-    self.list_view.onSetRotationMode = function(widget, mode)
+    self.main_view.onSetRotationMode = function(widget, mode)
         Screen:setRotationMode(mode)
         UIManager:nextTick(function()
             self:showArticles()
@@ -514,7 +551,11 @@ function Ereader:showArticles()
     end
 
 
-    UIManager:show(self.list_view)
+    if current_list_page > 1 then
+        self.list_view.show_page = current_list_page
+        self.list_view:_populateItems()
+    end
+    UIManager:show(self.main_view)
 end
 
 function Ereader:showMenu()
@@ -533,28 +574,22 @@ function Ereader:showMenu()
             {
                 text = sync_string,
                 callback = function()
-                    -- Use runWhenOnline to handle Wi-Fi reconnection non-blockingly
+                    -- Use runWhenOnline to ensure Wi-Fi, then run task out of process
                     NetworkMgr:runWhenOnline(function()
-                        local info = InfoMessage:new{ text = _("Syncing...") }
-                        UIManager:show(info)
-                        
-                        local success, error_message = self.instapaperManager:synchWithAPI()
-                        
-                        UIManager:close(info)
-                        
-                        if success then
-                            UIManager:show(InfoMessage:new{ 
-                                text = _("Sync completed successfully!"),
-                                timeout = 2
-                            })
-                            -- Refresh the display
-                            self:showArticles()
-                        else
-                            UIManager:show(ConfirmBox:new{
-                                text = _("Sync failed: " .. error_message),
-                                ok_text = _("OK"),
-                            })
-                        end
+                        TaskManager.run(function()
+                            self:setStatusMessage(_("Syncing…"))
+                            return self.instapaperManager:synchWithAPI()
+                        end, function(success, error_message)
+                            if success then
+                                self:setStatusMessage(_("Sync complete"), 2)
+                                self:showArticles()
+                            else
+                                UIManager:show(ConfirmBox:new{
+                                    text = _("Sync failed: " .. (error_message or "")),
+                                    ok_text = _("OK"),
+                                })
+                            end
+                        end)
                     end)
                 end,
             },
@@ -567,6 +602,8 @@ function Ereader:showMenu()
                         cancel_text = _("Cancel"),
                         ok_callback = function()
                             self.instapaperManager:logout()
+                            self.has_not_synced = true
+                            self:showArticles() -- force refresh
                             self:showLoginDialog()
                         end,
                     })
@@ -577,8 +614,8 @@ function Ereader:showMenu()
                 callback = function()
                     UIManager:close(menu_container)
                     -- Close the current Ereader UI
-                    if self.list_view then
-                        UIManager:close(self.list_view)
+                    if self.main_view then
+                        UIManager:close(self.main_view)
                     end
                     -- Open the File Manager
                     local FileManager = require("apps/filemanager/filemanager")
@@ -590,31 +627,62 @@ function Ereader:showMenu()
     UIManager:show(menu_container)
 end
 
+function Ereader:setStatusMessage(message, timeout)
+    if not self.title_bar.subtitle_widget then
+        return
+    end
+
+    self.title_bar.subtitle_widget:setText(message)
+    UIManager:setDirty(self.main_view, function() -- not sure why this is needed, titlebar will sometimes not update without it
+        return "ui", self.main_view.dimen
+    end)
+
+    if timeout then
+        UIManager:scheduleIn(timeout, function()
+            self.title_bar.subtitle_widget:setText("")
+            UIManager:setDirty(self.main_view, function()
+                return "ui", self.main_view.dimen
+            end)
+        end)
+    end
+end
+
 function Ereader:loadArticleContent(article)
     local filepath = self.instapaperManager:getCachedArticleFilePath(article.bookmark_id)
     if filepath then
         self:showReaderForArticle(article, filepath)
     else
         NetworkMgr:runWhenOnline(function()
-            local info = InfoMessage:new{ text = _("Downloading article...") }
+            local info = InfoMessage:new{ text = _("Downloading " .. article.title .. "…") }
             UIManager:show(info)
-            
-            UIManager:scheduleIn(0.1, function()
-                -- Download and get article content
-                local success, newfilepath, error_message = self.instapaperManager:downloadArticle(article.bookmark_id)
+            info.onTapClose = function()
+                logger.dbg("ereader: download info window closed")
+                self:setStatusMessage(_("Downloading " .. article.title .. "…"))
                 UIManager:close(info)
-                if not success then
+            end
+
+            TaskManager.run(function()
+                return self.instapaperManager:downloadArticle(article.bookmark_id)
+            end, function(success, error_message)
+                if success then
+                    if UIManager:isSubwidgetShown(info) then -- if the user dismissed the download info window, don't launch it automatically
+                        UIManager:close(info)
+                        local filepath = self.instapaperManager:getCachedArticleFilePath(article.bookmark_id)
+                        if filepath then
+                            self:showReaderForArticle(article, filepath)
+                        end
+                    else 
+                        self:setStatusMessage("Download complete", 2)
+                    end
+            
+                    -- update the article list to show the downloaded article
+                    self:showArticles()
+                else 
                     UIManager:show(ConfirmBox:new{
                         text = _("Failed to load article: ") .. (error_message or _("Unknown error")),
                         ok_text = _("OK"),
                     })
-                    return
                 end
-                
-                self:showReaderForArticle(article, newfilepath)
-
-                -- update the article list to show the downloaded article
-                self:showArticles()
             end)
         end)
     end
@@ -650,12 +718,15 @@ function Ereader:showReaderForArticle(article, filepath)
             ReaderUI.instance:registerModule("readerereader", module_instance)
             UIManager:nextTick(function()
                 -- get article highlights, load async
-                local success, error_message = self.instapaperManager:getArticleHighlights(article.bookmark_id)
-                if not success then
-                    logger.dbg("ereader: get highlights failed:", result)
-                end
-                -- loadHighlights, will fall back on local cache if getArticleHighlights fails
-                module_instance:reloadHighlights()
+                TaskManager.run(function()
+                    return self.instapaperManager:getArticleHighlights(article.bookmark_id)
+                end, function(success, error_message)
+                    if not success then
+                        logger.dbg("ereader: get highlights failed:", result)
+                    end
+                    -- loadHighlights, will fall back on local cache if getArticleHighlights fails
+                    module_instance:reloadHighlights()
+                end)
             end)
         end
     end)
@@ -690,7 +761,7 @@ function Ereader:onKeyPress(key, mods, is_repeat)
         end
         local current = Screen:getRotationMode()
         local new_mode = (current + 1) % 4
-        self.list_view.onSetRotationMode(self.list_view, new_mode)
+        self.main_view.onSetRotationMode(self.main_view, new_mode)
         return true
     end
     return false
