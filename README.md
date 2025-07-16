@@ -40,13 +40,13 @@ Currently support is limited to Instapaper. Support for other services, includin
 
 [x] Configurable pre-fetching articles
 
+[x] Highlighting text (beta)
+
 [ ] Improved access to device controls (backlight, rotation lock, etc)
 
 [ ] One-click installation
 
 [ ] Browsing favorites and archive
-
-[ ] Highlighting text
 
 [ ] Tagging
 
