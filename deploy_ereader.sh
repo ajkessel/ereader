@@ -1,19 +1,35 @@
 #!/bin/bash
 
-# KOReader Instapaper Plugin Deployment Script
-# This script copies the Instapaper plugin to your development device
+# KOReader eReader Deployment Script
+# This script eReader plugin and related files to your Kobo device and sets up the eReader menu item in the Nickle menu.
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Cross-platform color support detection
+if [ -t 1 ] && command -v tput >/dev/null 2>&1; then
+    # Check if terminal supports colors
+    ncolors=$(tput colors)
+    if [ -n "$ncolors" ] && [ $ncolors -ge 8 ]; then
+        RED='\033[0;31m'
+        GREEN='\033[0;32m'
+        YELLOW='\033[1;33m'
+        NC='\033[0m' # No Color
+    else
+        RED=''
+        GREEN=''
+        YELLOW=''
+        NC=''
+    fi
+else
+    # No color support
+    RED=''
+    GREEN=''
+    YELLOW=''
+    NC=''
+fi
 
 # Configuration
 PLUGIN_SOURCE="plugins/ereader.koplugin"
-DEVICE_PLUGIN_DIR="/Volumes/KOBOeReader/.adds/koreader/plugins"
 
 # Additional files to copy (source -> destination relative to KOReader root)
 KOREADER_BASE_FILES=(
@@ -33,61 +49,164 @@ if [ ! -d "$PLUGIN_SOURCE" ]; then
     exit 1
 fi
 
-# Check if device is connected
-if [ ! -d "/Volumes/KOBOeReader" ]; then
-    echo -e "${YELLOW}Warning: Device not found at /Volumes/KOBOeReader${NC}"
-    echo "Please ensure your Kobo device is connected and mounted"
-    echo "The device should appear as 'KOBOeReader' in Finder"
+# Cross-platform Kobo volume detection
+PLATFORM="$(uname -s)"
+KOBO_MOUNTPOINT=""
+
+case "${PLATFORM}" in
+    "Linux" )
+        # Use findmnt, it's in util-linux, which should be present in every sane distro.
+        if ! command -v findmnt >/dev/null 2>&1; then
+            echo -e "${RED}Error: This script relies on findmnt, from util-linux!${NC}"
+            echo "Please install util-linux package for your distribution."
+            exit 1
+        fi
+
+        # Match on the FS Label, which is common to all models.
+        KOBO_MOUNTPOINT="$(findmnt -nlo TARGET LABEL=KOBOeReader 2>/dev/null || true)"
+    ;;
+    "Darwin" )
+        # Same idea, via diskutil
+        if ! command -v diskutil >/dev/null 2>&1; then
+            echo -e "${RED}Error: diskutil command not found!${NC}"
+            exit 1
+        fi
+        KOBO_MOUNTPOINT="$(diskutil info -plist "KOBOeReader" 2>/dev/null | grep -A1 "MountPoint" | tail -n 1 | cut -d'>' -f2 | cut -d'<' -f1 || true)"
+    ;;
+    "MINGW"*|"MSYS"*|"CYGWIN"* )
+        echo -e "${RED}Windows support is not yet implemented.${NC}"
+        echo "Please run this script from WSL, Git Bash, or a similar Unix-like environment."
+        exit 1
+    ;;
+    * )
+        echo -e "${RED}Unsupported OS: ${PLATFORM}${NC}"
+        exit 1
+    ;;
+esac
+
+# Sanity check for Kobo mount point
+if [[ -z "${KOBO_MOUNTPOINT}" ]] ; then
+    echo -e "${RED}Error: Couldn't find a Kobo eReader volume! Is one actually mounted?${NC}"
     exit 1
 fi
+
+# Validate that this is actually a Kobo device
+KOBO_DIR="${KOBO_MOUNTPOINT}/.kobo"
+if [[ ! -d "${KOBO_DIR}" ]] ; then
+    echo -e "${RED}Error: Can't find a .kobo directory, ${KOBO_MOUNTPOINT} doesn't appear to point to a Kobo eReader... Is one actually mounted?${NC}"
+    exit 1
+fi
+
+# Set device plugin directory based on detected mount point
+DEVICE_PLUGIN_DIR="${KOBO_MOUNTPOINT}/.adds/koreader/plugins"
+
+echo -e "${GREEN}Found Kobo device at: ${KOBO_MOUNTPOINT}${NC}"
 
 # Check if KOReader plugins directory exists on device
 if [ ! -d "$DEVICE_PLUGIN_DIR" ]; then
     echo -e "${YELLOW}Creating plugins directory on device...${NC}"
-    mkdir -p "$DEVICE_PLUGIN_DIR"
+    if ! mkdir -p "$DEVICE_PLUGIN_DIR"; then
+        echo -e "${RED}Error: Failed to create plugins directory on device!${NC}"
+        exit 1
+    fi
 fi
 
 # Copy plugin to device
 echo -e "${GREEN}Copying plugin to device...${NC}"
-cp -r "$PLUGIN_SOURCE" "$DEVICE_PLUGIN_DIR/"
+if ! cp -r "$PLUGIN_SOURCE" "$DEVICE_PLUGIN_DIR/"; then
+    echo -e "${RED}Error: Failed to copy plugin to device!${NC}"
+    exit 1
+fi
 
 # Copy base files to device
 for FILE in "${KOREADER_BASE_FILES[@]}"; do
-    DEST="/Volumes/KOBOeReader/.adds/koreader/${FILE}"
+    if [ ! -f "$FILE" ]; then
+        echo -e "${YELLOW}Warning: Source file not found: $FILE${NC}"
+        continue
+    fi
+    
+    DEST="${KOBO_MOUNTPOINT}/.adds/koreader/${FILE}"
     DEST_DIR="$(dirname "$DEST")"
     if [ ! -d "$DEST_DIR" ]; then
         echo -e "${YELLOW}Creating directory $DEST_DIR on device...${NC}"
-        mkdir -p "$DEST_DIR"
+        if ! mkdir -p "$DEST_DIR"; then
+            echo -e "${RED}Error: Failed to create directory $DEST_DIR on device!${NC}"
+            exit 1
+        fi
     fi
     echo -e "${GREEN}Copying $FILE to device...${NC}"
-    cp "$FILE" "$DEST"
+    if ! cp "$FILE" "$DEST"; then
+        echo -e "${RED}Error: Failed to copy $FILE to device!${NC}"
+        exit 1
+    fi
 done
 
 # Check for .adds/nm directory and create ereader menu item if needed
-NM_DIR="/Volumes/KOBOeReader/.adds/nm"
+NM_DIR="${KOBO_MOUNTPOINT}/.adds/nm"
 NM_FILE="$NM_DIR/ereader"
 if [ -d "$NM_DIR" ]; then
     if [ ! -f "$NM_FILE" ]; then
         echo -e "${GREEN}Creating eReader menu item in $NM_DIR...${NC}"
-        cat > "$NM_FILE" <<EOF
+        if ! cat > "$NM_FILE" <<EOF
 menu_item : main : eReader : cmd_spawn : quiet : exec /mnt/onboard/.adds/koreader/koreader.sh -ereader
 EOF
+        then
+            echo -e "${RED}Error: Failed to create eReader menu item!${NC}"
+            exit 1
+        fi
     else
         echo -e "${YELLOW}eReader menu item already exists in $NM_DIR.${NC}"
     fi
 fi
 
-# Set proper permissions
+# Set proper permissions (Unix-specific)
 echo -e "${GREEN}Setting permissions...${NC}"
-chmod -R 755 "$DEVICE_PLUGIN_DIR/ereader.koplugin"
+if command -v chmod >/dev/null 2>&1; then
+    if ! chmod -R 755 "$DEVICE_PLUGIN_DIR/ereader.koplugin"; then
+        echo -e "${YELLOW}Warning: Failed to set permissions on plugin directory${NC}"
+    fi
+else
+    echo -e "${YELLOW}Warning: chmod not available, skipping permission setting${NC}"
+fi
 
+# Cross-platform device ejection
 echo -e "${GREEN}Ejecting Kobo device...${NC}"
-diskutil eject /Volumes/KOBOeReader
+case "${PLATFORM}" in
+    "Linux" )
+        # Try to unmount the device
+        if command -v udisksctl >/dev/null 2>&1; then
+            DEVICE_SOURCE="$(findmnt -nlo SOURCE "$KOBO_MOUNTPOINT" 2>/dev/null || true)"
+            if [ -n "$DEVICE_SOURCE" ]; then
+                if ! udisksctl unmount -b "$DEVICE_SOURCE"; then
+                    echo -e "${YELLOW}Warning: udisksctl failed, trying umount...${NC}"
+                    if command -v umount >/dev/null 2>&1; then
+                        if ! umount "$KOBO_MOUNTPOINT"; then
+                            echo -e "${YELLOW}Warning: Could not automatically eject device. Please eject manually.${NC}"
+                        fi
+                    else
+                        echo -e "${YELLOW}Warning: Could not automatically eject device. Please eject manually.${NC}"
+                    fi
+                fi
+            else
+                echo -e "${YELLOW}Warning: Could not determine device source for ejection${NC}"
+            fi
+        elif command -v umount >/dev/null 2>&1; then
+            if ! umount "$KOBO_MOUNTPOINT"; then
+                echo -e "${YELLOW}Warning: Could not automatically eject device. Please eject manually.${NC}"
+            fi
+        else
+            echo -e "${YELLOW}Warning: Could not automatically eject device. Please eject manually.${NC}"
+        fi
+    ;;
+    "Darwin" )
+        if ! diskutil eject "$KOBO_MOUNTPOINT"; then
+            echo -e "${YELLOW}Warning: Could not automatically eject device. Please eject manually.${NC}"
+        fi
+    ;;
+esac
 
 echo -e "${GREEN}Deployment completed successfully!${NC}"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo "1. Restart KOReader on your device"
-echo "2. The eReader plugin should now be available in the plugin menu"
-echo ""
-echo -e "${YELLOW}To restore the previous version:${NC}"
+echo "2. eReader should now be available in the Nickle menu item"
