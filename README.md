@@ -11,9 +11,9 @@ eReader is currently in early development and has only been tested on Kobo so fa
 
 ## Installing eReader
 
-Currently, the easiest way to install eReader is on top of an existing KOReader install. If you already have KOReader installed, make sure you are running the latest release before proceeeding. If you do not already have KOReader, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install it (using either the semi-automated method or manually installing KFMon and KOReader). If you have installed KOReader previously, make sure you have [the most recent release](https://github.com/koreader/koreader/releases) installed before installing the eReader plugin.
+Currently, the easiest way to install eReader is on top of an existing KOReader install. If you do not already have KOReader, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install it (using either the semi-automated method or manually installing KFMon and KOReader). If you have installed KOReader previously, make sure you have [the most recent release](https://github.com/koreader/koreader/releases) installed before installing eReader.
 
-Once you have installed it, you can simply check out the eReader code, plug in your device and run this command, which is intended for a MacOS environment. It will need to be tweaked for Windows or Linux.
+Once you have installed it, you can simply check out the eReader code, plug in your device and run this command:
 ```
 ./deploy_ereader.sh
 ```
@@ -38,6 +38,8 @@ Currently support is limited to Instapaper. Support for other services, includin
 
 [x] Offline request queueing (actions like archive, favorite, etc) and graceful offline support
 
+[x] Configurable pre-fetching articles
+
 [ ] Improved access to device controls (backlight, rotation lock, etc)
 
 [ ] One-click installation
@@ -47,8 +49,6 @@ Currently support is limited to Instapaper. Support for other services, includin
 [ ] Highlighting text
 
 [ ] Tagging
-
-[ ] Configurable pre-fetching articles
 
 ## Setting up for development
 
