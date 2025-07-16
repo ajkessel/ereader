@@ -20,9 +20,15 @@ Once you have installed it, you can simply check out the eReader code, plug in y
 
 This will install eReader into your existing install of KOReader, but KOReader will continue to be fully functional. The deploy script also add a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu). If you already have a KOReader shortcut menu item, it will continue to work as before. 
 
-## Installing eReader on Kindle and other devices 
+## Installing eReader on Kindle
 
-Currently eReader has only been tested on Kobo. Installation on other devices should be straightforward if you have a working KOReader install, but you'll have to do it manually as the deploy script above currently only supports Kobo. If you own a Kindle and would like to contribute to eReaders's development, please comment on the [issue](https://github.com/quicklywilliam/ereader/issues/7) requesting support!
+Currently eReader has only been tested on Kobo. Installation on other devices should be straightforward if you have a working KOReader install, but you'll have to do it manually as the deploy script above currently only supports Kobo. If you have a jailbroken Kindle and would like to contribute to eReaders's development, please comment on the [issue](https://github.com/quicklywilliam/ereader/issues/7) requesting support!
+
+If you are new to Kindle modding, be advised that jailbreaking a Kindle is fairly involved and there is currently no Jailbreak for the latest firmware version. For more information, visit this [Reddit thread on r/Kindle](https://www.reddit.com/r/kindle/comments/1khoafs/does_anybody_have_any_idea_when_new_jailbreak_for/).
+
+## Installing eReader on other devices 
+
+Please file an issue requesting support if you own a Pocketbook, reMarkable or other device besides a Kobo or Kindle! It is likely that eReader will work fine once installed, but we need help testing and improving the install process on such devices.
 
 ## Features
 
