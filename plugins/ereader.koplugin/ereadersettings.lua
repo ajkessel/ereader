@@ -113,7 +113,8 @@ function Settings:_promptArticlesToDownload()
     local current_val = self:getArticlesToDownload()
     local dialog
     dialog = InputDialog:new{
-        title = _("Articles to download"),
+        title = _("Article auto-download limit"),
+        description = _("When syncing, eReader will automatically download your most recent articles, up to this limit."),
         input = tostring(current_val),
         input_type = "number",
         buttons = {
@@ -157,10 +158,9 @@ function Settings:show()
     end
     local kv_pairs = {
         {
-            _("Articles to download"),
+            _("Article auto-download limit"),
             tostring(self:getArticlesToDownload()),
             callback = function()
-                UIManager:close(self.kv_page)
                 self:_promptArticlesToDownload()
             end,
         },

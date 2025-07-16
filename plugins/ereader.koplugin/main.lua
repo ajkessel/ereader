@@ -529,7 +529,6 @@ function Ereader:downloadNextArticle(articles, index)
     
     local is_downloaded = self.instapaperManager:getCachedArticleFilePath(article.bookmark_id)
     if is_downloaded then
-        skipped_articles = skipped_articles + 1
         self:downloadNextArticle(articles, index + 1)
         return
     end
@@ -543,15 +542,10 @@ function Ereader:downloadNextArticle(articles, index)
             if self.main_view == UIManager:getTopmostVisibleWidget() then
                 self:showArticles()
             end
-            
+
             self:downloadNextArticle(articles, index + 1)
         end
     end)
-
-    if skipped_articles == articles_to_download then
-        -- we didn't download anything
-        self:setStatusMessage("")
-    end
 end
 
 function Ereader:synchAndDownloadArticles()
