@@ -7,18 +7,22 @@
 
 eReader is an open source client application for read it later services (currently just Instapaper). eReader is based on KOReader, so it works with Kobo/Kindle/etc. eReader is designed to be simpler to use than KOReader, with the assumption that most users will use it alongside their device's native experience (ie for reading ebooks). eReader also allows you to access to a fully functioning version of KOReader if you so desire.
 
-eReader is currently in early development and has only been tested on Kobo so far. It's still very much a work in progress.
+eReader is currently in active development. Please file an issue for any bugs you run into!
 
-## Installing eReader
+## Installing eReader on Kobo
 
 Currently, the easiest way to install eReader is on top of an existing KOReader install. If you do not already have KOReader, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install it (using either the semi-automated method or manually installing KFMon and KOReader). If you have installed KOReader previously, make sure you have [the most recent release](https://github.com/koreader/koreader/releases) installed before installing eReader.
 
-Once you have installed it, you can simply check out the eReader code, plug in your device and run this command:
+Once you have installed it, you can simply check out the eReader code, plug in your Kobo and run this command:
 ```
 ./deploy_ereader.sh
 ```
 
 This will install eReader into your existing install of KOReader, but KOReader will continue to be fully functional. The deploy script also add a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu). If you already have a KOReader shortcut menu item, it will continue to work as before. 
+
+## Installing eReader on Kindle and other devices 
+
+Currently eReader has only been tested on Kobo. Installation on other devices should be straightforward if you have a working KOReader install, but you'll have to do it manually as the deploy script above currently only supports Kobo. If you own a Kindle and would like to contribute to eReaders's development, please comment on the [issue](https://github.com/quicklywilliam/ereader/issues/7) requesting support!
 
 ## Features
 
