@@ -44,11 +44,13 @@ Currently support is limited to Instapaper. Support for other services, includin
 
 [ ] Improved access to device controls (backlight, rotation lock, etc)
 
-[ ] One-click installation
-
 [ ] Browsing favorites and archive
 
 [ ] Tagging
+
+[ ] One-click installation
+
+[ ] OTA Updates
 
 ## Setting up for development
 
