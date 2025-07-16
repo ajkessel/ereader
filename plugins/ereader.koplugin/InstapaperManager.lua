@@ -436,36 +436,36 @@ function InstapaperManager:archiveArticle(bookmark_id)
     end
 end
 
-function InstapaperManager:favoriteArticle(bookmark_id)
+function InstapaperManager:likeArticle(bookmark_id)
     if not self:isAuthenticated() then
-        logger.err("ereader: Cannot favorite article - not authenticated")
+        logger.err("ereader: Cannot like article - not authenticated")
         return false
     end
-    logger.dbg("ereader: Favoriting article:", bookmark_id)
-    local success, error_message, did_enqueue = self.instapaper_api_manager:favoriteArticle(bookmark_id)
+    logger.dbg("ereader: Liking article:", bookmark_id)
+    local success, error_message, did_enqueue = self.instapaper_api_manager:likeArticle(bookmark_id)
     if success then
         self.storage:updateArticleStatus(bookmark_id, "starred", true)
-        logger.dbg("ereader: Successfully favorited article:", bookmark_id)
+        logger.dbg("ereader: Successfully liked article:", bookmark_id)
         return true, nil, did_enqueue
     else
-        logger.err("ereader: Failed to favorite article:", bookmark_id)
+        logger.err("ereader: Failed to like article:", bookmark_id)
         return false, error_message, false
     end
 end
 
-function InstapaperManager:unfavoriteArticle(bookmark_id)
+function InstapaperManager:unlikeArticle(bookmark_id)
     if not self:isAuthenticated() then
-        logger.err("ereader: Cannot unfavorite article - not authenticated")
+        logger.err("ereader: Cannot unlike article - not authenticated")
         return false
     end
-    logger.dbg("ereader: Unfavoriting article:", bookmark_id)
-    local success, error_message, did_enqueue = self.instapaper_api_manager:unfavoriteArticle(bookmark_id)
+    logger.dbg("ereader: Unliking article:", bookmark_id)
+    local success, error_message, did_enqueue = self.instapaper_api_manager:unlikeArticle(bookmark_id)
     if success then
         self.storage:updateArticleStatus(bookmark_id, "starred", false)
-        logger.dbg("ereader: Successfully unfavorited article:", bookmark_id)
+        logger.dbg("ereader: Successfully unliked article:", bookmark_id)
         return true, nil, did_enqueue
     else
-        logger.err("ereader: Failed to unfavorite article:", bookmark_id)
+        logger.err("ereader: Failed to unlike article:", bookmark_id)
         return false, error_message, false
     end
 end

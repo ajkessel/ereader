@@ -212,12 +212,12 @@ function ReaderEreader:showToolbar()
     }
     local meta = self.instapaperManager:getArticleMetadata(self.current_article.bookmark_id)
     if meta and meta.starred then
-        table.insert(buttons, makeLabeledButton("star.full", "Unfavorite", function() 
-            self:onUnfavoriteArticle() 
+                table.insert(buttons, makeLabeledButton("star.full", "Unlike", function()
+            self:onUnlikeArticle()
         end))
-    else 
-        table.insert(buttons, makeLabeledButton("star.empty", "Favorite", function() 
-            self:onFavoriteArticle()
+    else
+        table.insert(buttons, makeLabeledButton("star.empty", "Like", function()
+            self:onLikeArticle()
         end))
     end
 
@@ -362,24 +362,24 @@ function ReaderEreader:onArchiveArticle()
     end)
 end
 
-function ReaderEreader:onFavoriteArticle()
+function ReaderEreader:onLikeArticle()
     if not self.current_article or not self.current_article.bookmark_id then
         UIManager:show(InfoMessage:new{
-            text = _("Cannot favorite: article not found"),
+            text = _("Cannot like: article not found"),
             timeout = 2,
         })
         return
     end
     
-    logger.dbg("ereader: Favoriting article", self.current_article.bookmark_id)
+    logger.dbg("ereader: Liking article", self.current_article.bookmark_id)
     
     -- Show loading message
-    local info = InfoMessage:new{ text = _("Favoriting article...") }
+    local info = InfoMessage:new{ text = _("Liking article...") }
     UIManager:show(info)
     
-    -- Perform favorite action
+    -- Perform like action
     UIManager:nextTick(function()
-        local success, error_message, did_enqueue = self.instapaperManager:favoriteArticle(self.current_article.bookmark_id)
+        local success, error_message, did_enqueue = self.instapaperManager:likeArticle(self.current_article.bookmark_id)
         UIManager:close(info)
         
         if success then
@@ -392,36 +392,36 @@ function ReaderEreader:onFavoriteArticle()
             end)
             
             UIManager:show(InfoMessage:new{
-                text = (did_enqueue and "Article will be favorited in next sync") or "Article favorited",
+                text = (did_enqueue and "Article will be liked in next sync") or "Article liked",
                 timeout = 2,
             })
         else
             UIManager:show(ConfirmBox:new{
-                text = _("Failed to favorite article: " .. error_message),
+                text = _("Failed to like article: " .. error_message),
                 ok_text = _("OK"),
             })
         end
     end)
 end
 
-function ReaderEreader:onUnfavoriteArticle()
+function ReaderEreader:onUnlikeArticle()
     if not self.current_article or not self.current_article.bookmark_id then
         UIManager:show(InfoMessage:new{
-            text = _("Cannot unfavorite: article not found"),
+            text = _("Cannot unlike: article not found"),
             timeout = 2,
         })
         return
     end
     
-    logger.dbg("ereader: Unfavoriting article", self.current_article.bookmark_id)
+    logger.dbg("ereader: Unliking article", self.current_article.bookmark_id)
     
     -- Show loading message
-    local info = InfoMessage:new{ text = _("Unfavoriting article...") }
+    local info = InfoMessage:new{ text = _("Unliking article...") }
     UIManager:show(info)
     
-    -- Perform favorite action
+    -- Perform unlike action
     UIManager:nextTick(function()
-        local success, error_message, did_enqueue = self.instapaperManager:unfavoriteArticle(self.current_article.bookmark_id)
+        local success, error_message, did_enqueue = self.instapaperManager:unlikeArticle(self.current_article.bookmark_id)
         UIManager:close(info)
         
         if success then
@@ -434,12 +434,12 @@ function ReaderEreader:onUnfavoriteArticle()
             end)
             
             UIManager:show(InfoMessage:new{
-                text = (did_enqueue and "Article will be unfavorited in next sync") or "Article unfavorited",
+                text = (did_enqueue and "Article will be unliked in next sync") or "Article unliked",
                 timeout = 2,
             })
         else
             UIManager:show(ConfirmBox:new{
-                text = _("Failed to unfavorite article: " .. error_message),
+                text = _("Failed to unlike article: " .. error_message),
                 ok_text = _("OK"),
             })
         end

@@ -795,7 +795,7 @@ function Ereader:likeArticle(article)
     local info = InfoMessage:new{ text = _("Liking " .. article.title .. "…") }
     UIManager:show(info)
     
-    local success, error_message, did_enqueue = self.instapaperManager:favoriteArticle(article.bookmark_id)
+    local success, error_message, did_enqueue = self.instapaperManager:likeArticle(article.bookmark_id)
     UIManager:close(info)
     
     if success then
@@ -818,7 +818,7 @@ function Ereader:unlikeArticle(article)
     local info = InfoMessage:new{ text = _("Unliking " .. article.title .. "…") }
     UIManager:show(info)
     
-    local success, error_message, did_enqueue = self.instapaperManager:unfavoriteArticle(article.bookmark_id)
+    local success, error_message, did_enqueue = self.instapaperManager:unlikeArticle(article.bookmark_id)
     UIManager:close(info)
     
     if success then

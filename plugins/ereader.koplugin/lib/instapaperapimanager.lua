@@ -542,11 +542,11 @@ function InstapaperAPIManager:archiveArticle(bookmark_id)
     return self:executeQueueableRequest("/api/1/bookmarks/archive", {bookmark_id = string.format("%d", bookmark_id)})
 end
 
-function InstapaperAPIManager:favoriteArticle(bookmark_id)    
+function InstapaperAPIManager:likeArticle(bookmark_id)    
     return self:executeQueueableRequest("/api/1/bookmarks/star", {bookmark_id = string.format("%d", bookmark_id)})
 end
 
-function InstapaperAPIManager:unfavoriteArticle(bookmark_id)    
+function InstapaperAPIManager:unlikeArticle(bookmark_id)    
     return self:executeQueueableRequest("/api/1/bookmarks/unstar", {bookmark_id = string.format("%d", bookmark_id)})
 end
 
