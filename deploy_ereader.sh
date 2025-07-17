@@ -126,11 +126,11 @@ case "${PLATFORM}" in
             done
           fi
         else
-          for MOUNTPOINT in /mnt /cygdrive /; do
-            KOBO_MOUNTPOINT="${MOUNTPOINT}/${KOBO_DRIVE}"
-            [ -d "${KOBO_MOUNTPOINT}/.kobo" ] && break
+          for MOUNTPOINT in /mnt/ /cygdrive/ /; do
+            KOBO_MOUNTPOINT="${MOUNTPOINT}${KOBO_DRIVE}"
+            [ -d "${KOBO_MOUNTPOINT}.kobo" ] && break
           done
-          if [ ! -d "${KOBO_MOUNTPOINT}/.kobo" ]; then
+          if [ ! -d "${KOBO_MOUNTPOINT}.kobo" ]; then
             echo -e "${RED}Could not find drive ${KOBO_DRIVE} in this environment. Exiting.${NC}"
             exit 1
           fi
