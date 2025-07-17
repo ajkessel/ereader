@@ -130,8 +130,10 @@ case "${PLATFORM}" in
             KOBO_MOUNTPOINT="${MOUNTPOINT}/${KOBO_DRIVE}"
             [ -d "${KOBO_MOUNTPOINT}/.kobo" ] && break
           done
-          echo -e "${RED}Could not find drive ${KOBO_DRIVE} in this environment. Exiting.${NC}"
-          exit 1
+          if [ ! -d "${KOBO_MOUNTPOINT}/.kobo" ]; then
+            echo -e "${RED}Could not find drive ${KOBO_DRIVE} in this environment. Exiting.${NC}"
+            exit 1
+          fi
         fi
         ;;
       * )
