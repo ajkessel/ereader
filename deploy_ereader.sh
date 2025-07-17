@@ -81,7 +81,7 @@ case "${PLATFORM}" in
         # simplistic algorithm for finding powershell executable in Windows
         # TODO: support drives other than c: and potentially other versions of PowersHell
         POWERSHELL_EXEC='powershell'
-        if ! command -v $POWERSHELL_EXEC >/dev/null 2>&1; then
+        if ! command -v "${POWERSHELL_EXEC}" >/dev/null 2>&1; then
           if command -v '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe' >/dev/null 2>&1; then
             POWERSHELL_EXEC='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
           elif command -v '/cygdrive/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe' >/dev/null 2>&1; then
