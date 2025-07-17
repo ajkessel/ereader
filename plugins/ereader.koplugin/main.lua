@@ -38,6 +38,9 @@ local Event = require("ui/event")
 local NetworkMgr = require("ui/network/manager")
 local TaskManager = require("taskmanager")
 local Menu = require("ui/widget/menu")
+local WiFiStatusWidget = require("ui/wifistatuswidget")
+local BatteryStatusWidget = require("ui/batterystatuswidget")
+local SyncStatusWidget = require("ui/syncstatuswidget")
 
 local Ereader = WidgetContainer:extend{
     name = "eReader",
@@ -377,12 +380,97 @@ function ArticleItem:onSwipe(arg, ges_ev)
     return false -- Let the event bubble up to parent
 end
 
+-- Create a custom status bar with title and status icons
+local function createStatusBar(width, title, subtitle, menu_callback, ereader_instance)
+    local title_bar_height = Screen:scaleBySize(60)
+    local icon_size = Screen:scaleBySize(32)
+    local icon_padding = Screen:scaleBySize(8)
+    
+    -- Create title bar with full width (status icons will be positioned on top)
+    local title_bar = TitleBar:new{
+        width = width - (icon_size * 3 + icon_padding * 3),
+        align = "left",
+        title = title,
+        subtitle = subtitle,
+        subtitle_face = Font:getFace("xx_smallinfofont", 14),
+        title_top_padding = Screen:scaleBySize(4),
+        title_bottom_padding = Screen:scaleBySize(4),
+        title_subtitle_v_padding = Screen:scaleBySize(0),
+        button_padding = Screen:scaleBySize(10),
+        left_icon_size_ratio = 1,
+        left_icon = "appbar.menu",
+        left_icon_tap_callback = menu_callback,
+        show_parent = ereader_instance,
+        -- Add right margin to prevent subtitle from going under status icons
+    }
+    
+    -- Create status icons using reusable widgets
+    local wifi_icon = WiFiStatusWidget:new{
+        width = icon_size,
+        height = icon_size,
+        padding = icon_padding,
+        show_parent = ereader_instance,
+    }
+    
+    local battery_icon = BatteryStatusWidget:new{
+        width = icon_size,
+        height = icon_size,
+        padding = icon_padding,
+        show_parent = ereader_instance,
+        show_info_on_tap = true,
+    }
+    
+    -- Set sync icon based on authentication state
+    local sync_icon = SyncStatusWidget:new{
+        width = icon_size,
+        height = icon_size,
+        padding = icon_padding,
+        show_parent = ereader_instance,
+        callback = function()
+            if ereader_instance.instapaperManager:isAuthenticated() then
+                ereader_instance:synchAndDownloadArticles()
+            else
+                ereader_instance:showLoginDialog()
+            end
+        end,
+    }
+    
+    -- Create status icons container
+    local status_container = RightContainer:new{
+        align = "center",
+        dimen = Geom:new{ w = width, h = title_bar_height },
+        HorizontalGroup:new{
+            align = "center",
+            wifi_icon,
+            HorizontalSpan:new{ width = Screen:scaleBySize(6) },
+            battery_icon,
+            HorizontalSpan:new{ width = Screen:scaleBySize(6) },
+            sync_icon,
+        },
+    }
+    
+    -- Create the combined status bar
+    local status_bar = OverlapGroup:new{
+        dimen = Geom:new{ w = width, h = title_bar_height },
+        title_bar,
+        status_container,
+    }
+    
+    -- Store references for updates
+    status_bar.title_bar = title_bar
+    status_bar.wifi_icon = wifi_icon
+    status_bar.battery_icon = battery_icon
+    status_bar.sync_icon = sync_icon
+    
+    return status_bar
+end
+
 function Ereader:showArticles()
     local current_list_page = 1
     local current_subtitle = ""
     if self.list_view then
         current_list_page = self.list_view.show_page
-        current_subtitle = self.title_bar.subtitle_widget.text
+        current_subtitle = self.status_bar.title_bar.subtitle_widget.text
         UIManager:close(self.main_view)
     end
 
@@ -433,38 +521,11 @@ function Ereader:showArticles()
         table.insert(items, no_articles_item)
     end
     
-    -- Create title bar with title and menu button
-    local title_bar_height = Screen:scaleBySize(50)
-    self.title_bar = TitleBar:new{
-        width = width,
-        align = "left",
-        title = _("eReader"),
-        subtitle = current_subtitle, -- used for status messages
-        subtitle_face = Font:getFace("xx_smallinfofont", 14),
-        title_top_padding = Screen:scaleBySize(4),
-        title_bottom_padding = Screen:scaleBySize(4),
-        title_subtitle_v_padding = Screen:scaleBySize(0),
-        button_padding = Screen:scaleBySize(10),
-        left_icon_size_ratio = 1,
-        left_icon = "appbar.menu",
-        left_icon_tap_callback = function()
-            self:showMenu()
-        end,
-        right_icon = "close",
-        right_icon_tap_callback = function()
-            UIManager:show(ConfirmBox:new{
-                text = _("Quit eReader and return to Kobo?"),
-                icon = "notice-question",
-                ok_text = _("Quit"),
-                cancel_text = _("Cancel"),
-                ok_callback = function()
-                    -- Exit KOReader entirely
-                    os.exit(0)
-                end,
-            })
-        end,
-        show_parent = self,
-    }
+    -- Create custom status bar with title and status icons
+    local title_bar_height = Screen:scaleBySize(60)
+    self.status_bar = createStatusBar(width, _("eReader"), current_subtitle, function()
+        self:showMenu()
+    end, self)
     
     -- Create ListView
     local list_height = Screen:getHeight() - title_bar_height
@@ -492,7 +553,7 @@ function Ereader:showArticles()
         width = width,
         VerticalGroup:new{
             align = "left",
-            self.title_bar,
+            self.status_bar,
             self.list_view,
         },
     }
@@ -565,6 +626,7 @@ end
 
 function Ereader:synchAndDownloadArticles()
     self:setStatusMessage(_("Syncing…"))
+
     -- initial sync can take a while, so show a message
 
     TaskManager.run(function()
@@ -581,6 +643,7 @@ function Ereader:synchAndDownloadArticles()
                 ok_text = _("OK"),
             })
         end
+        
     end)
 end
 
@@ -648,6 +711,23 @@ function Ereader:showMenu()
                     FileManager:showFiles()
                 end,
             },
+            {
+                text = _("Quit eReader"),
+                callback = function()
+                    UIManager:close(menu_container)
+
+                    UIManager:show(ConfirmBox:new{
+                        text = _("Quit eReader and return to Kobo?"),
+                        icon = "notice-question",
+                        ok_text = _("Quit"),
+                        cancel_text = _("Cancel"),
+                        ok_callback = function()
+                            -- Exit KOReader entirely
+                            os.exit(0)
+                        end,
+                    })
+                end,
+            }
         },
     }
     UIManager:show(menu_container)
@@ -867,18 +947,18 @@ function Ereader:deleteArticle(article)
 end
 
 function Ereader:setStatusMessage(message, timeout)
-    if not self.title_bar.subtitle_widget then
+    if not self.status_bar.title_bar or not self.status_bar.title_bar.subtitle_widget then
         return
     end
 
-    self.title_bar.subtitle_widget:setText(message)
+    self.status_bar.title_bar.subtitle_widget:setText(message)
     UIManager:setDirty(self.main_view, function() -- not sure why this is needed, titlebar will sometimes not update without it
         return "ui", self.main_view.dimen
     end)
 
     if timeout then
         UIManager:scheduleIn(timeout, function()
-            self.title_bar.subtitle_widget:setText("")
+            self.status_bar.title_bar.subtitle_widget:setText("")
             UIManager:setDirty(self.main_view, function()
                 return "ui", self.main_view.dimen
             end)
