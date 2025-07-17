@@ -127,7 +127,7 @@ case "${PLATFORM}" in
           fi
         else
           for MOUNTPOINT in /mnt/ /cygdrive/ /; do
-            KOBO_MOUNTPOINT="${MOUNTPOINT}${KOBO_DRIVE}"
+            KOBO_MOUNTPOINT="${MOUNTPOINT}${KOBO_DRIVE}/"
             [ -d "${KOBO_MOUNTPOINT}.kobo" ] && break
           done
           if [ ! -d "${KOBO_MOUNTPOINT}.kobo" ]; then
