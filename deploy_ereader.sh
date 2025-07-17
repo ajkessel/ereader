@@ -96,14 +96,14 @@ case "${PLATFORM}" in
         KOBO_DRIVE=$("${POWERSHELL_EXEC}" -c '(Get-Volume  -FileSystemLabel "KOBOeReader" -ErrorAction SilentlyContinue | Select-Object DriveLetter).DriveLetter ')
         KOBO_DRIVE="${KOBO_DRIVE:0:1}"
         KOBO_DRIVE="${KOBO_DRIVE,,}"
-        if [ -z "${KOBO_DRIVE}" ]; then
+        if [[ -z "${KOBO_DRIVE}" ]]; then
           echo -e "${RED}Error: could not find any drive corresponding to Kobo device. Please make sure it is connected.${NC}"
           exit 1
         fi
         if [ "${PLATFORM}" == "WSL" ]; then
           WSL_MOUNT=$(findmnt -S "${KOBO_DRIVE}:" -t 9p -nlo TARGET | head -1)
           KOBO_MOUNTPOINT="/mnt/${KOBO_DRIVE}"
-          if [ -z "${WSL_MOUNT}" ]; then
+          if [[ -z "${WSL_MOUNT}" ]]; then
             echo -e "${YELLOW}Kobo device appears to be Windows drive ${KOBO_DRIVE} which is not mounted in WSL. We can try to attempt to mount it if you like. This will require administrator privileges.${NC}"
             while true; do 
               read -p "Do you want to mount the Kobo device in WSL? (yes/no): " yn
@@ -262,7 +262,7 @@ case "${PLATFORM}" in
     fi
     ;;
   "WSL"* )
-    if [ ! -z "${UNMOUNT}" ]; then
+    if [[ ! -z "${UNMOUNT}" ]]; then
       if ! sudo umount "${KOBO_MOUNTPOINT}"; then
         echo -e "${YELLOW}Warning: Could not unmount device. Please eject manually.${NC}"
       fi
