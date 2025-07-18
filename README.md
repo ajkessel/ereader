@@ -1,8 +1,9 @@
 # The eReader Project
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/b5b5db2b-9357-4625-9b8f-fa9a692a3b7a" alt="drawing" style="width:45%;"/>
-  <img src="https://github.com/user-attachments/assets/f0c72004-3f0e-4984-8537-b92983d227ca" alt="drawing" style="width:45%;"/>
+  <img src="https://github.com/user-attachments/assets/4baac2a7-6a21-41b1-b0c3-4ccf395bb932" alt="drawing" style="width:45%;"/>
+  <img src="https://github.com/user-attachments/assets/0c857390-adaa-4afc-a35a-f0bffa95c781" alt="drawing" style="width:45%;"/>
+  
 </p>
 
 eReader is an open source client application for read it later services (currently just Instapaper). eReader is based on KOReader, so it works with Kobo/Kindle/etc. eReader is designed to be simpler to use than KOReader, with the assumption that most users will use it alongside their device's native experience (ie for reading ebooks). eReader also allows you to access to a fully functioning version of KOReader if you so desire.
