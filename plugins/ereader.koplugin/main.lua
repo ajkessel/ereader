@@ -42,6 +42,7 @@ local WiFiStatusWidget = require("ui/wifistatuswidget")
 local BatteryStatusWidget = require("ui/batterystatuswidget")
 local SyncStatusWidget = require("ui/syncstatuswidget")
 local ScreenWidget = require("ui/screenwidget")
+local RotationWidget = require("ui/rotationwidget")
 
 local Ereader = WidgetContainer:extend{
     name = "eReader",
@@ -412,6 +413,13 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
         padding = 0,
         show_parent = ereader_instance,
     }
+
+    local rotation_icon = RotationWidget:new{
+        width = icon_size,
+        height = icon_size,
+        padding = 0,
+        show_parent = ereader_instance,
+    }
     
     local wifi_icon = WiFiStatusWidget:new{
         width = icon_size,
@@ -454,6 +462,8 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
             align = "center",
             screen_icon,
             HorizontalSpan:new{ width = icon_padding },
+            rotation_icon,
+            HorizontalSpan:new{ width = icon_padding },
             wifi_icon,
             HorizontalSpan:new{ width = icon_padding },
             battery_icon,
@@ -473,6 +483,7 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
     -- Store references for updates
     status_bar.title_bar = title_bar
     status_bar.screen_icon = screen_icon
+    status_bar.rotation_icon = rotation_icon
     status_bar.wifi_icon = wifi_icon
     status_bar.battery_icon = battery_icon
     status_bar.sync_icon = sync_icon

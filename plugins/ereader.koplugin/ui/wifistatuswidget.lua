@@ -38,7 +38,6 @@ function WiFiStatusWidget:init()
 end
 
 function WiFiStatusWidget:toggleWiFi()
-    logger.dbg("ereader: toggling…")
     local callback = function()
         logger.dbg("ereader: toggleWiFi: callback")
         self:updateIcon()
@@ -149,7 +148,6 @@ function WiFiStatusWidget:updateIcon()
     if self.icon ~= new_icon then
         self:setIcon(new_icon)
         UIManager:setDirty("all", "ui")
-        logger.dbg("ereader: Updated wifi icon to", new_icon)
     end
 end
 

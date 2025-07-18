@@ -38,6 +38,9 @@ KOREADER_BASE_FILES=(
   "frontend/ui/widget/menu.lua"
   "resources/icons/mdlight/wifi.off.svg"
   "resources/icons/mdlight/brightness.svg"
+  "resources/icons/mdlight/rotation.auto.svg"
+  "resources/icons/mdlight/rotation.lock.portrait.svg"
+  "resources/icons/mdlight/rotation.lock.landscape.svg"
   "reader.lua"
 )
 
