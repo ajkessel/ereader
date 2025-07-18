@@ -428,7 +428,10 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
         show_parent = ereader_instance,
         callback = function()
             if ereader_instance.instapaperManager:isAuthenticated() then
-                ereader_instance:synchAndDownloadArticles()
+                -- Use runWhenOnline to ensure Wi-Fi
+                NetworkMgr:runWhenOnline(function()
+                    ereader_instance:synchAndDownloadArticles()
+                end)
             else
                 ereader_instance:showLoginDialog()
             end
@@ -653,27 +656,12 @@ function Ereader:showMenu()
         return
     end
 
-    local last_sync = self.instapaperManager:getLastSyncTime()
-    local sync_string = "Sync"
-    if last_sync then
-        local sync_time = os.date("%m-%d %H:%M", tonumber(last_sync))
-        sync_string = ("Sync (last: " .. sync_time .. ")")
-    end
     
     local menu_container = Menu:new{
         width = Screen:getWidth() * 0.8,
         height = Screen:getHeight() * 0.8,
         is_enable_shortcut = false,
         item_table = {
-            {
-                text = sync_string,
-                callback = function()
-                    -- Use runWhenOnline to ensure Wi-Fi
-                    NetworkMgr:runWhenOnline(function()
-                        self:synchAndDownloadArticles()
-                    end)
-                end,
-            },
             {
                 text = _("Settings"),
                 callback = function()
