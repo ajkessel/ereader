@@ -36,6 +36,7 @@ KOREADER_BASE_FILES=(
   "frontend/ui/elements/filemanager_menu_order.lua"
   "frontend/ui/elements/reader_menu_order.lua"
   "frontend/ui/widget/menu.lua"
+  "resources/icons/mdlight/wifi.off.svg"
   "reader.lua"
 )
 

@@ -35,27 +35,25 @@ function WiFiStatusWidget:init()
     
     -- Call parent init
     IconButton.init(self)
-    
 end
 
 function WiFiStatusWidget:toggleWiFi()
-    -- Use the existing NetworkListener toggle functionality
-    local NetworkListener = require("ui/network/networklistener")
-    local listener = NetworkListener:new{}
-    listener:onToggleWifi()
-    
-    -- Update icon after a short delay to allow the toggle to complete
-    UIManager:scheduleIn(1, function()
+    logger.dbg("ereader: toggling…")
+    local callback = function()
+        logger.dbg("ereader: toggleWiFi: callback")
         self:updateIcon()
-        if self.on_state_change then
-            self.on_state_change()
-        end
-    end)
+    end
+
+    if NetworkMgr:isWifiOn() then
+        NetworkMgr:toggleWifiOff(callback)
+    else
+        NetworkMgr:toggleWifiOn(callback)
+    end
 end
 
 function WiFiStatusWidget:getWiFiIcon()
     if not NetworkMgr:isWifiOn() then
-        return "wifi.open.0"
+        return "wifi.off"
     end
     
     -- Get current network information
@@ -150,7 +148,8 @@ function WiFiStatusWidget:updateIcon()
     local new_icon = self:getWiFiIcon()
     if self.icon ~= new_icon then
         self:setIcon(new_icon)
-        logger.dbg("WiFiStatusWidget: Updated icon to", new_icon)
+        UIManager:setDirty("all", "ui")
+        logger.dbg("ereader: Updated wifi icon to", new_icon)
     end
 end
 
