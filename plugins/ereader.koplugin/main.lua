@@ -41,6 +41,7 @@ local Menu = require("ui/widget/menu")
 local WiFiStatusWidget = require("ui/wifistatuswidget")
 local BatteryStatusWidget = require("ui/batterystatuswidget")
 local SyncStatusWidget = require("ui/syncstatuswidget")
+local ScreenWidget = require("ui/screenwidget")
 
 local Ereader = WidgetContainer:extend{
     name = "eReader",
@@ -384,11 +385,11 @@ end
 local function createStatusBar(width, title, subtitle, menu_callback, ereader_instance)
     local title_bar_height = Screen:scaleBySize(60)
     local icon_size = Screen:scaleBySize(32)
-    local icon_padding = Screen:scaleBySize(8)
+    local icon_padding = Screen:scaleBySize(12)
     
     -- Create title bar with full width (status icons will be positioned on top)
     local title_bar = TitleBar:new{
-        width = width - (icon_size * 3 + icon_padding * 3),
+        width = width - (icon_size * 4 + icon_padding * 3),
         align = "left",
         title = title,
         subtitle = subtitle,
@@ -405,17 +406,24 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
     }
     
     -- Create status icons using reusable widgets
+    local screen_icon = ScreenWidget:new{
+        width = icon_size,
+        height = icon_size,
+        padding = 0,
+        show_parent = ereader_instance,
+    }
+    
     local wifi_icon = WiFiStatusWidget:new{
         width = icon_size,
         height = icon_size,
-        padding = icon_padding,
+        padding = 0,
         show_parent = ereader_instance,
     }
     
     local battery_icon = BatteryStatusWidget:new{
         width = icon_size,
         height = icon_size,
-        padding = icon_padding,
+        padding = 0,
         show_parent = ereader_instance,
         show_info_on_tap = true,
     }
@@ -424,7 +432,7 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
     local sync_icon = SyncStatusWidget:new{
         width = icon_size,
         height = icon_size,
-        padding = icon_padding,
+        padding = 0,
         show_parent = ereader_instance,
         callback = function()
             if ereader_instance.instapaperManager:isAuthenticated() then
@@ -444,11 +452,14 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
         dimen = Geom:new{ w = width, h = title_bar_height },
         HorizontalGroup:new{
             align = "center",
+            screen_icon,
+            HorizontalSpan:new{ width = icon_padding },
             wifi_icon,
-            HorizontalSpan:new{ width = Screen:scaleBySize(6) },
+            HorizontalSpan:new{ width = icon_padding },
             battery_icon,
-            HorizontalSpan:new{ width = Screen:scaleBySize(6) },
+            HorizontalSpan:new{ width = icon_padding },
             sync_icon,
+            HorizontalSpan:new{ width = 8 },
         },
     }
     
@@ -461,6 +472,7 @@ local function createStatusBar(width, title, subtitle, menu_callback, ereader_in
     
     -- Store references for updates
     status_bar.title_bar = title_bar
+    status_bar.screen_icon = screen_icon
     status_bar.wifi_icon = wifi_icon
     status_bar.battery_icon = battery_icon
     status_bar.sync_icon = sync_icon

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<svg width="48" height="48" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" enable-background="new 0 0 24.00 24.00" version="1.1" xml:space="preserve">
+ <metadata id="metadata10">image/svg+xml</metadata>
+ <g class="layer">
+  <title>Layer 1</title>
+  <ellipse cx="23.92" cy="24.05" fill="none" fill-opacity="null" id="svg_1" rx="5.38" ry="5.38" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2"/>
+  <line fill="none" fill-opacity="null" id="svg_2" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" x1="23.79" x2="23.79" y1="8.67" y2="14.23"/>
+  <line fill="none" fill-opacity="null" id="svg_3" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" x1="23.98" x2="23.98" y1="33.77" y2="39.33"/>
+  <line fill="none" fill-opacity="null" id="svg_4" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" transform="rotate(90 36.4763 23.696)" x1="36.48" x2="36.48" y1="20.92" y2="26.47"/>
+  <line fill="none" fill-opacity="null" id="svg_5" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" transform="rotate(90 11.3491 23.7976)" x1="11.35" x2="11.35" y1="21.02" y2="26.58"/>
+  <line fill="none" fill-opacity="null" id="svg_6" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" transform="rotate(45 32.4741 14.8193)" x1="32.47" x2="32.47" y1="12.04" y2="17.6"/>
+  <line fill="none" fill-opacity="null" id="svg_7" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" transform="rotate(45 15.097 32.931)" x1="15.1" x2="15.1" y1="30.15" y2="35.71"/>
+  <line fill="none" fill-opacity="null" id="svg_8" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" transform="rotate(-45 14.597 15.3277)" x1="14.6" x2="14.6" y1="12.55" y2="18.11"/>
+  <line fill="none" fill-opacity="null" id="svg_10" stroke="#000000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="null" stroke-width="2" transform="rotate(-45 33.347 32.3277)" x1="33.35" x2="33.35" y1="29.55" y2="35.11"/>
+ </g>
+</svg>
