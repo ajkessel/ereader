@@ -118,7 +118,7 @@ case "${PLATFORM}" in
                   if [ ! -d "${KOBO_MOUNTPOINT}" ]; then
                     echo "Creating mountpoint ${KOBO_MOUNTPOINT}..."
                     if ! mkdir -m=777 -p "${KOBO_MOUNTPOINT}" >/dev/null 2>&1; then
-                      sudo mkdir -m=777 -p "${KOBO_MOUNTPOINT}" >/dev/null 2>&1
+                      sudo mkdir -m=777 -p "${KOBO_MOUNTPOINT}" 
                     fi
                   fi
                   if [ ! -d "${KOBO_MOUNTPOINT}" ]; then
@@ -127,7 +127,7 @@ case "${PLATFORM}" in
                   fi
                   echo "Mounting ${KOBO_DRIVE}..."
                   if ! mount "${KOBO_DRIVE}:" "${KOBO_MOUNTPOINT}" -t drvfs >/dev/null 2>&1; then
-                    if ! sudo mount "${KOBO_DRIVE}:" "${KOBO_MOUNTPOINT}" -t drvfs >/dev/null 2>&1; then
+                    if ! sudo mount "${KOBO_DRIVE}:" "${KOBO_MOUNTPOINT}" -t drvfs; then
                       echo -e "${RED}Unable to mount ${KOBO_DRIVE}: on ${KOBO_MOUNTPOINT}. Exiting.${NC}"
                       exit 1
                     fi
