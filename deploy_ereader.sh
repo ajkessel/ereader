@@ -393,7 +393,61 @@ then
     fi
   fi
 elif [ "$DEVICE_TYPE" = "kindle" ]; then
-  echo -e "${YELLOW}Note: For Kindle devices, you may need to manually add the eReader menu item to your launcher configuration.${NC}"
+  # Create KUAL extension for Kindle
+  KUAL_EXTENSION_DIR="${DEVICE_MOUNTPOINT}/extensions/eReader"
+  
+  if [ ! -d "$KUAL_EXTENSION_DIR" ]; then
+    echo -e "${GREEN}Creating KUAL extension directory...${NC}"
+    if ! mkdir -p "$KUAL_EXTENSION_DIR"; then
+      echo -e "${RED}Error: Failed to create KUAL extension directory!${NC}"
+      exit 1
+    fi
+  fi
+  
+  # Create config.xml
+  echo -e "${GREEN}Creating KUAL extension config.xml...${NC}"
+  if ! cat > "$KUAL_EXTENSION_DIR/config.xml" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<extension>
+        <information>
+                <name>eReader</name>
+                <version>1.0</version>
+                <author>eReader Dev Team</author>
+                <id>eReader</id>
+        </information>
+        <menus>
+                <menu type="json" dynamic="true">menu.json</menu>
+        </menus>
+</extension>
+EOF
+then
+  echo -e "${RED}Error: Failed to create KUAL extension config.xml!${NC}"
+  exit 1
+    fi
+  
+  # Create menu.json
+  echo -e "${GREEN}Creating KUAL extension menu.json...${NC}"
+  if ! cat > "$KUAL_EXTENSION_DIR/menu.json" <<EOF
+{
+        "items": [
+        {
+                "name": "Start eReader",
+                "priority": -999,
+                "action": "/mnt/us/koreader/koreader.sh -ereader",
+                "refresh": false,
+                "exitmenu": false,
+                "status": true
+        }
+        ]
+}
+EOF
+then
+  echo -e "${RED}Error: Failed to create KUAL extension menu.json!${NC}"
+  exit 1
+    fi
+  
+  echo -e "${GREEN}KUAL extension created successfully!${NC}"
+  echo -e "${YELLOW}Note: Make sure KUAL is installed on your Kindle device to use the eReader menu item.${NC}"
 fi
 
 # Set proper permissions (Unix-specific)
