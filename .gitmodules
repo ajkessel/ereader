@@ -19,3 +19,6 @@
 	path = l10n
 	url = https://github.com/koreader/koreader-translations.git
 	shallow = true
+[submodule "lib/secrets-store/Obfuscate"]
+	path = lib/secrets-store/Obfuscate
+	url = https://github.com/adamyaxley/Obfuscate.git
