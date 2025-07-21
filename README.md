@@ -10,7 +10,7 @@ eReader is an open source client application for read it later services (current
 
 eReader is currently in active development. Please file an issue for any bugs you run into!
 
-## Installing eReader on Kobo and Kindle
+## Installing eReader
 
 Currently, the easiest way to install eReader is on top of an existing KOReader install. If you have installed KOReader previously, make sure you have [the most recent release](https://github.com/koreader/koreader/releases) installed before installing eReader. If you do not have KOReader installed, see below.
 
@@ -21,15 +21,15 @@ Once you KOReader is installed, simply check out the eReader repo, plug in your 
 
 This will install eReader into your existing install of KOReader (KOReader will not be replaced, you can continue to use it if you want). The deploy script adds a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu) on Kobo or [KUAL](https://www.mobileread.com/forums/showthread.php?t=203326) on Kindle.
 
-## Installing KOReader on Kobo
+eReader has been tested on Kindle and Kobo. If you own another device (Pocketbook, reMarkable, Boox etc) please file an issue requesting support! eReader should work fine once installed, but we need help testing and improving the install process on such devices.
+
+## Installing KOReader 
+
+## On Kobo
 Follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install KOReader on Kobo (using either the semi-automated method or manually installing KFMon and KOReader).
 
 ### On Kindle
 To install KOReader on Kindle, you need a jailbroken Kindle. Follow [this guide](https://kindlemodding.org/jailbreaking/) to jailbreak your Kindle. Once you have jailbroken your Kindle, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kindle-devices) to install KOReader.
-
-### On Pocketbook/reMarkable/Boox etc
-
-Please file an issue requesting support if you own an e-ink device besides a Kobo or Kindle! It is likely that eReader will work fine once installed, but we need help testing and improving the install process on such devices.
 
 ## Features
 
