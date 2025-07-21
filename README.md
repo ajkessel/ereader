@@ -21,7 +21,7 @@ Once you KOReader is installed, simply check out the eReader repo, plug in your 
 
 This will install eReader into your existing install of KOReader, but KOReader will continue to be fully functional. The deploy script also add a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu) on Kobo or [KUAL](https://www.mobileread.com/forums/showthread.php?t=203326) on Kindle.
 
-### Installing KOReader on Kobo
+## Installing KOReader on Kobo
 Follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install KOReader on Kobo (using either the semi-automated method or manually installing KFMon and KOReader).
 
 ### On Kindle
