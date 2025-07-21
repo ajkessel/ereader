@@ -67,7 +67,7 @@ Currently support is limited to Instapaper. Support for other services, includin
 
 ## Setting up for development
 
-In order to run eReader in the emulator, you will need to your own OAUTH client keys. You can obtain these credentials by [applying for Instapaper API access](https://www.instapaper.com/api). This isn't needed when running the release builds, at least on Kobo.
+In order to run eReader in the emulator, you will need to your own OAUTH client keys. You can obtain these credentials by [applying for Instapaper API access](https://www.instapaper.com/api). This isn't needed when running the release builds.
 
 Once you have them, create a `secrets.txt` file in ~/.config/koreader with your Instapaper API credentials:
 
