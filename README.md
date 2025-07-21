@@ -56,7 +56,9 @@ Currently support is limited to Instapaper. Support for other services, includin
 
 [x] Highlighting text (beta)
 
-[ ] Improved access to device controls (backlight, rotation lock, etc)
+[x] Access to device controls (backlight, rotation lock, etc)
+
+[] Improved text styling controls
 
 [ ] Browsing favorites and archive
 

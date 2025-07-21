@@ -85,6 +85,7 @@ case "${PLATFORM}" in
       "MINGW"*|"MSYS"*|"CYGWIN"*|"WSL"* )
         # simplistic algorithm for finding powershell executable in Windows
         # TODO: support drives other than c: and potentially other versions of PowersHell
+        # TODO: perhaps there is a better way to figure out where windows drive is mounted from cygwin-like environments
         POWERSHELL_EXEC='powershell'
         if ! command -v "${POWERSHELL_EXEC}" >/dev/null 2>&1; then
           if command -v '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe' >/dev/null 2>&1; then
@@ -109,17 +110,29 @@ case "${PLATFORM}" in
           WSL_MOUNT=$(findmnt -S "${KOBO_DRIVE}:" -t 9p -nlo TARGET | head -1)
           KOBO_MOUNTPOINT="/mnt/${KOBO_DRIVE}"
           if [[ -z "${WSL_MOUNT}" ]]; then
-            echo -e "${YELLOW}Kobo device appears to be Windows drive ${KOBO_DRIVE} which is not mounted in WSL. We can try to attempt to mount it if you like. This will require administrator privileges.${NC}"
+            echo -e "${YELLOW}Kobo device appears to be Windows drive ${KOBO_DRIVE} which is not mounted in WSL. We can try to attempt to mount it if you like. This may require administrator privileges.${NC}"
             while true; do 
               read -p "Do you want to mount the Kobo device in WSL? (yes/no): " yn
               case $yn in
                 [Yy]* ) 
                   if [ ! -d "${KOBO_MOUNTPOINT}" ]; then
                     echo "Creating mountpoint ${KOBO_MOUNTPOINT}..."
-                    sudo mkdir -m=777 -p "${KOBO_MOUNTPOINT}"
+                    if ! mkdir -m=777 -p "${KOBO_MOUNTPOINT}" >/dev/null 2>&1; then
+                      sudo mkdir -m=777 -p "${KOBO_MOUNTPOINT}" 
+                    fi
+                  fi
+                  if [ ! -d "${KOBO_MOUNTPOINT}" ]; then
+                      echo -e "${RED}Unable to access mount point ${KOBO_MOUNTPOINT}. Exiting.${NC}"
+                      exit 1
                   fi
                   echo "Mounting ${KOBO_DRIVE}..."
-                  sudo mount "${KOBO_DRIVE}:" "${KOBO_MOUNTPOINT}" -t drvfs
+                  if ! mount "${KOBO_DRIVE}:" "${KOBO_MOUNTPOINT}" -t drvfs >/dev/null 2>&1; then
+                    if ! sudo mount "${KOBO_DRIVE}:" "${KOBO_MOUNTPOINT}" -t drvfs; then
+                      echo -e "${RED}Unable to mount ${KOBO_DRIVE}: on ${KOBO_MOUNTPOINT}. Exiting.${NC}"
+                      exit 1
+                    fi
+                  fi
+                  # set flag to unmount kobo device at end of process
                   UNMOUNT=1
                   break
                   ;;
