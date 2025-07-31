@@ -242,6 +242,25 @@ function ArticleItem:init()
     -- Check if article is downloaded
     local is_downloaded = self.article.html_size and self.article.html_size > 0
     
+    -- Progress percentage widget (only show if progress > 0)
+    local progress_widget
+    if self.article.progress and self.article.progress > 0 then
+        local progress_percent = math.floor(self.article.progress * 100)
+        local progress_text = progress_percent .. "%"
+        if progress_percent == 100 then
+            progress_text = "Finished"
+        end
+        progress_widget = TextWidget:new{
+            text = progress_text,
+            fgcolor = Blitbuffer.COLOR_BLACK,
+            forced_baseline = Screen:scaleBySize(6),
+            face = Font:getFace("infont", 14),
+            max_width = Screen:scaleBySize(80),
+            width = Screen:scaleBySize(80),
+            height = Screen:scaleBySize(14),
+        }
+    end
+    
     -- Menu button (replaces download icon)
     local menu_button = Button:new{
         text = "…",
@@ -318,6 +337,20 @@ function ArticleItem:init()
         domain_widget,
     }
     
+    -- Right side container for progress and menu button
+    local right_group
+    if progress_widget then
+        right_group = VerticalGroup:new{
+            align = "right",
+            progress_widget,
+            height = self.height,
+            VerticalSpan:new{ height = Screen:scaleBySize(4) },
+            menu_button,
+        }
+    else
+        right_group = menu_button
+    end
+    
     -- Main content with thumbnail on the left and menu button on the right
     local content_group = OverlapGroup:new {
         dimen = self.dimen:copy(),
@@ -328,9 +361,9 @@ function ArticleItem:init()
             text_group,
         },
         RightContainer:new{
-            align = "center",
+            align = "top",
             dimen = Geom:new{ w = self.width - Screen:scaleBySize(20), h = self.height },
-            menu_button,
+            right_group,
         },
     }
     

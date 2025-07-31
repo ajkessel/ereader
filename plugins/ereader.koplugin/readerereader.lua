@@ -99,6 +99,11 @@ function ReaderEreader:autoRegisterWithReaderUI()
                 
                 -- Register with ReaderEreader
                 ReaderUI.instance:registerModule("readerereader", module_instance)
+                local onPageUpdate = module_instance.onPageUpdate
+                ReaderUI.instance.onPageUpdate = function(pageno)
+                    onPageUpdate(pageno)
+                    module_instance:onPageUpdate(pageno)
+                end
                 
                 return true -- Stop checking
             end
@@ -675,6 +680,27 @@ function ReaderStatus:onEndOfBook(...)
     end
 end
 
+
+-- Track reading progress when page changes
+function ReaderEreader:onPageUpdate(pageno)
+    if not self.is_ereader_document or not self.current_article or not self.current_article.bookmark_id then
+        return
+    end
+    
+    local total_pages = self.ui.document:getPageCount()
+    if total_pages and total_pages > 0 then
+        local progress = pageno / total_pages
+        progress = math.max(0, math.min(1, progress))
+        
+        local ok, err = pcall(function()
+            self.instapaperManager.storage:updateProgress(self.current_article.bookmark_id, progress)
+        end)
+        
+        if not ok then
+            logger.warn("ereader: Failed to update progress:", err)
+        end
+    end
+end
 
 -- Call syncHighlightsWithEreaderStorage from onClose
 function ReaderEreader:onClose()
