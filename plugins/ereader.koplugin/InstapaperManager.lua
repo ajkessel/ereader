@@ -367,8 +367,8 @@ function InstapaperManager:downloadArticle(bookmark_id)
             return false, nil, "Failed to download article"
         end
     end
-    -- If the HTML does not contain a <body> tag, wrap it
-    if not html_content:find("<body", 1, true) then
+    -- If the HTML does not contain a <body> or <body ...>tag, wrap it
+    if not (html_content:find("<body>", 1, true) and html_content:find("<body ", 1, true)) then
         html_content = "<html><body>" .. html_content .. "</body></html>"
     end
     -- Prepend header to HTML (inside body)
