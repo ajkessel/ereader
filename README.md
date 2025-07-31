@@ -10,29 +10,26 @@ eReader is an open source client application for read it later services (current
 
 eReader is currently in active development. Please file an issue for any bugs you run into!
 
-## Installing eReader on Kobo
+## Installing eReader
 
-Currently, the easiest way to install eReader is on top of an existing KOReader install. If you do not already have KOReader, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install it (using either the semi-automated method or manually installing KFMon and KOReader). If you have installed KOReader previously, make sure you have [the most recent release](https://github.com/koreader/koreader/releases) installed before installing eReader.
+Currently, the easiest way to install eReader is on top of an existing KOReader install. If you have installed KOReader previously, make sure you have [the most recent release](https://github.com/koreader/koreader/releases) installed before installing eReader. If you do not have KOReader installed, see below.
 
-Once you have installed it, you can simply check out the eReader code, plug in your Kobo and run this command:
+Once you KOReader is installed, simply check out the eReader repo, plug in your device and run this command:
 ```
 ./deploy_ereader.sh
 ```
 
-This will install eReader into your existing install of KOReader, but KOReader will continue to be fully functional. The deploy script also add a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu). If you already have a KOReader shortcut menu item, it will continue to work as before. 
+This will install eReader into your existing install of KOReader (KOReader will not be replaced, you can continue to use it if you want). The deploy script adds a shortcut to launch eReader using [NickleMenu](https://github.com/pgaskin/NickelMenu) on Kobo or [KUAL](https://www.mobileread.com/forums/showthread.php?t=203326) on Kindle.
 
-## Installing eReader on other devices
+eReader has been tested on Kindle and Kobo. If you own another device (Pocketbook, reMarkable, Boox etc) please file an issue requesting support! eReader should work fine once installed, but we need help testing and improving the install process on such devices.
 
-Currently eReader has only been tested on Kobo. Installation on other devices should be straightforward if you have a working KOReader install, but you'll have to do it manually as the deploy script above currently only supports Kobo. 
+## Installing KOReader 
+
+## On Kobo
+Follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices) to install KOReader on Kobo (using either the semi-automated method or manually installing KFMon and KOReader).
 
 ### On Kindle
-If you have a jailbroken Kindle and would like to contribute to eReaders's development, please comment on the [issue](https://github.com/quicklywilliam/ereader/issues/7) requesting support!
-
-If you are new to Kindle modding, be advised that jailbreaking a Kindle is fairly involved and there is currently no Jailbreak for the latest firmware version. For more information, visit this [Reddit thread on r/Kindle](https://www.reddit.com/r/kindle/comments/1khoafs/does_anybody_have_any_idea_when_new_jailbreak_for/).
-
-### On Pocketbook/reMarkable/Boox etc
-
-Please file an issue requesting support if you own an e-ink device besides a Kobo or Kindle! It is likely that eReader will work fine once installed, but we need help testing and improving the install process on such devices.
+To install KOReader on Kindle, you need a jailbroken Kindle. Follow [this guide](https://kindlemodding.org/jailbreaking/) to jailbreak your Kindle. Once you have jailbroken your Kindle, follow [these instructions](https://github.com/koreader/koreader/wiki/Installation-on-Kindle-devices) to install KOReader.
 
 ## Features
 
@@ -70,7 +67,7 @@ Currently support is limited to Instapaper. Support for other services, includin
 
 ## Setting up for development
 
-In order to run eReader in the emulator, you will need to your own OAUTH client keys. You can obtain these credentials by [applying for Instapaper API access](https://www.instapaper.com/api). This isn't needed when running the release builds, at least on Kobo.
+In order to run eReader in the emulator, you will need to your own OAUTH client keys. You can obtain these credentials by [applying for Instapaper API access](https://www.instapaper.com/api). This isn't needed when running the release builds.
 
 Once you have them, create a `secrets.txt` file in ~/.config/koreader with your Instapaper API credentials:
 
