@@ -451,7 +451,7 @@ then
 fi
 
 # Set proper permissions (Unix-specific)
-if "${PLATFORM}" != "WSL"; then
+if [ "${PLATFORM}" != "WSL" ]; then
   echo -e "${GREEN}Setting permissions...${NC}"
   if command -v chmod >/dev/null 2>&1; then
     if ! chmod -R 755 "$DEVICE_PLUGIN_DIR/ereader.koplugin"; then
