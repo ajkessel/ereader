@@ -901,10 +901,10 @@ function Ereader:archiveArticle(article)
     UIManager:close(info)
     
     if success then
-        UIManager:show(InfoMessage:new{
-            text = (did_enqueue and _("Article will be archived in next sync")) or _("Article archived"),
-            timeout = 2,
-        })
+        -- UIManager:show(InfoMessage:new{
+        --   text = (did_enqueue and _("Article will be archived in next sync")) or _("Article archived"),
+        --    timeout = 2,
+        -- })
         -- Refresh the article list
         self:showArticles()
     else

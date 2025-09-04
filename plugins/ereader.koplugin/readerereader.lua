@@ -352,10 +352,10 @@ function ReaderEreader:onArchiveArticle()
         UIManager:close(info)
         
         if success then
-            UIManager:show(InfoMessage:new{
-                text = (did_enqueue and "Article will be archived in next sync") or "Article archived",
-                timeout = 2,
-            })
+            -- UIManager:show(InfoMessage:new{
+            --    text = (did_enqueue and "Article will be archived in next sync") or "Article archived",
+            --    timeout = 2,
+            -- })
             -- Return to articles list
             self:onBackToArticles()
         else

@@ -451,13 +451,15 @@ then
 fi
 
 # Set proper permissions (Unix-specific)
-echo -e "${GREEN}Setting permissions...${NC}"
-if command -v chmod >/dev/null 2>&1; then
-  if ! chmod -R 755 "$DEVICE_PLUGIN_DIR/ereader.koplugin"; then
-    echo -e "${YELLOW}Warning: Failed to set permissions on plugin directory${NC}"
+if "${PLATFORM}" != "WSL"; then
+  echo -e "${GREEN}Setting permissions...${NC}"
+  if command -v chmod >/dev/null 2>&1; then
+    if ! chmod -R 755 "$DEVICE_PLUGIN_DIR/ereader.koplugin"; then
+      echo -e "${YELLOW}Warning: Failed to set permissions on plugin directory${NC}"
+    fi
+  else
+    echo -e "${YELLOW}Warning: chmod not available, skipping permission setting${NC}"
   fi
-else
-  echo -e "${YELLOW}Warning: chmod not available, skipping permission setting${NC}"
 fi
 
 # Cross-platform device ejection
